@@ -1,0 +1,336 @@
+:root {
+  --bg: #0b1320;
+  --surface: #101c33;
+  --card: #121e3f;
+  --card-border: rgba(85, 156, 255, 0.28);
+  --text: #eef4ff;
+  --muted: #9fb4d3;
+  --accent: #1a73ff;
+  --input: rgba(255, 255, 255, 0.08);
+  --input-border: rgba(255, 255, 255, 0.16);
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  background: radial-gradient(circle at top, rgba(58, 138, 255, 0.2), transparent 30%),
+    linear-gradient(180deg, #08101f 0%, #08101f 45%, #0e1b35 100%);
+  color: var(--text);
+}
+* {
+  box-sizing: border-box;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+.app-shell {
+  min-height: 100vh;
+}
+.login-screen,
+.container {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
+.login-card {
+  width: min(420px, calc(100% - 32px));
+  padding: 32px;
+  border: 1px solid var(--card-border);
+  border-radius: 28px;
+  background: rgba(8, 14, 31, 0.96);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+.login-card h2 {
+  margin: 0 0 24px;
+  color: #d2e4ff;
+  text-align: center;
+  font-size: 2rem;
+}
+.login-card label {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--muted);
+}
+.login-card input,
+.login-card select {
+  width: 100%;
+  border: 1px solid var(--input-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 8px;
+  background: var(--input);
+  color: var(--text);
+}
+.login-card input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+.login-card button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.login-card button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(26, 115, 255, 0.28);
+}
+.login-footer {
+  margin: 16px 0 0;
+  font-size: 0.95rem;
+  text-align: center;
+  color: var(--muted);
+}
+.login-footer a {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+}
+.container {
+  max-width: 980px;
+  padding: 24px 18px;
+}
+.hidden {
+  display: none !important;
+}
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.app-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+.app-header p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.user-chip span {
+  color: var(--muted);
+}
+.user-chip button {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+main {
+  display: grid;
+  gap: 18px;
+}
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+.stat-card strong {
+  display: block;
+  font-size: 2rem;
+  color: white;
+}
+.stat-card span {
+  color: var(--muted);
+}
+.admin-users {
+  margin-top: 18px;
+}
+.user-card {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 12px;
+}
+.user-card strong {
+  display: inline-block;
+  color: white;
+}
+.user-card span {
+  float: right;
+  color: var(--accent);
+}
+.user-card div {
+  margin-top: 8px;
+  color: var(--muted);
+  word-break: break-all;
+}
+.panel {
+  background: rgba(21, 35, 60, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  padding: 24px;
+}
+.panel h2 {
+  margin-top: 0;
+  font-size: 1.4rem;
+}
+#messages,
+#assignments {
+  min-height: 140px;
+}
+.message,
+.assignment,
+.submission {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: 12px;
+}
+.message.unread {
+  border: 1px solid rgba(56, 188, 255, 0.5);
+  background: rgba(56, 188, 255, 0.06);
+}
+.resolved-tag {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(121, 255, 164, 0.14);
+  color: #adffcc;
+  font-size: 0.9rem;
+}
+.message strong,
+.assignment h3 {
+  color: white;
+}
+.message em,
+.submission em {
+  color: var(--accent);
+}
+.message-actions {
+  margin-top: 10px;
+}
+.reply-button {
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.reply-button:hover {
+  background: rgba(255,255,255,0.1);
+}
+.message-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 14px 0 10px;
+}
+.filter-button {
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.filter-button.active {
+  background: rgba(56, 188, 255, 0.18);
+  border-color: rgba(56, 188, 255, 0.7);
+  color: #b5f4ff;
+}
+.filter-button:hover {
+  background: rgba(255,255,255,0.1);
+}
+.reply-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.reply-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+}
+.reply-form button {
+  align-self: start;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(26, 115, 255, 0.9);
+  color: white;
+  cursor: pointer;
+}
+.thread {
+  margin-top: 12px;
+}
+.panel form {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.panel form input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+.panel form button {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 16px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+}
+
+.form-status {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  color: #8ce7ff;
+  min-height: 1.2em;
+}
+
+.submission.none {
+  opacity: 0.75;
+  font-style: italic;
+}
+.time {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 8px;
+}
+footer {
+  color: var(--muted);
+  text-align: center;
+  margin-top: 14px;
+}
+@media (max-width: 720px) {
+  .login-card {
+    padding: 24px;
+  }
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

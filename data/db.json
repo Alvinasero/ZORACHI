@@ -1,0 +1,207 @@
+{
+  "messages": [
+    {
+      "id": 1,
+      "from": "avin4",
+      "role": "learner",
+      "to": "teacher",
+      "text": "hello",
+      "time": "2026-06-07T16:08:08.529Z"
+    },
+    {
+      "id": 2,
+      "from": "alvin lisann",
+      "role": "admin",
+      "to": null,
+      "parentId": 1,
+      "text": "hello tew how are doing",
+      "time": "2026-06-08T08:08:01.756Z",
+      "resolved": false,
+      "resolvedBy": null,
+      "resolvedAt": null
+    },
+    {
+      "id": 3,
+      "from": "Musa Moses",
+      "role": "learner",
+      "to": null,
+      "parentId": null,
+      "text": "this is my work",
+      "time": "2026-06-09T15:39:47.992Z",
+      "resolved": false,
+      "resolvedBy": null,
+      "resolvedAt": null
+    }
+  ],
+  "assignments": [
+    {
+      "id": 1,
+      "title": "types of soils",
+      "description": "discuss several reasons and implementations",
+      "teacher": "avin4",
+      "createdAt": "2026-06-07T14:37:44.339Z",
+      "submissions": [
+        {
+          "id": 1,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "clay",
+          "time": "2026-06-09T15:36:34.282Z",
+          "grade": "B",
+          "recommendation": "Kepp up",
+          "gradedAt": "2026-06-10T10:14:06.844Z",
+          "gradedBy": "kaluluu mshevi"
+        },
+        {
+          "id": 2,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "loamy",
+          "time": "2026-06-09T15:36:41.692Z",
+          "grade": "C",
+          "recommendation": "put more effots! You have ability!",
+          "gradedAt": "2026-06-10T10:15:04.713Z",
+          "gradedBy": "kaluluu mshevi"
+        },
+        {
+          "id": 3,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "sand",
+          "time": "2026-06-09T15:36:49.284Z"
+        },
+        {
+          "id": 4,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "and other",
+          "time": "2026-06-09T15:37:47.954Z"
+        },
+        {
+          "id": 5,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "huuuuh",
+          "time": "2026-06-09T16:05:12.724Z"
+        },
+        {
+          "id": 6,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "clay soils",
+          "attachment": null,
+          "time": "2026-06-09T16:26:34.626Z",
+          "updatedAt": "2026-06-10T10:04:52.014Z"
+        },
+        {
+          "id": 7,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "loamy",
+          "attachment": null,
+          "time": "2026-06-09T16:27:43.011Z"
+        },
+        {
+          "id": 8,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "hello sir, here are my assignments that I did last week and also yeaterday, have finished them and are all ready to be submitted now!",
+          "attachment": null,
+          "time": "2026-06-10T08:31:43.064Z"
+        },
+        {
+          "id": 9,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "now is done",
+          "attachment": "fileUpload-1781084792371.jpg",
+          "time": "2026-06-10T09:46:32.397Z"
+        },
+        {
+          "id": 11,
+          "learner": "peter keter",
+          "parent": "mayii Alvin",
+          "content": "all the modelling techniques were implemented correctly and more concisely",
+          "attachment": "fileUpload-1781088735959.jpg",
+          "time": "2026-06-10T10:52:16.144Z"
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "email": "lissan4@gmail.com",
+      "password": "$2a$10$.QRVtfFpsqXqp.WpjOtVIu1909WzruJ1Z/YC8mwxIGbY1aZBi2.1W",
+      "role": "learner",
+      "name": "lissan4"
+    },
+    {
+      "id": 2,
+      "email": "lissan5@gmail.com",
+      "password": "$2a$10$uus6oAmyO0PQBUoOhT2CVO0rUWnQYv4znT7yWPtWqN1qXIyC302W2",
+      "role": "admin",
+      "name": "lissan5"
+    },
+    {
+      "id": 3,
+      "email": "vens5@gmail.com",
+      "password": "$2a$10$jcmbZTtVwZmHJYIzX3nYOO8p6m7GHHl967D/dTgnyfojjajdH3y92",
+      "role": "admin",
+      "name": "vens5"
+    },
+    {
+      "id": 4,
+      "email": "avin4@gmail.com",
+      "password": "$2a$10$P.nwu16Hi.x37MVjR7woFOWA5KA2Alyl3nf8X9dJRVdowq69d.lFu",
+      "role": "teacher",
+      "name": "avin4"
+    },
+    {
+      "id": 5,
+      "email": "asero@gmail.com",
+      "password": "$2a$10$auIDRX4OykyG7fJvl5Zg0Oh0hZRN775.XHvFsu7./4qPrDy.T7x.O",
+      "role": "parent",
+      "name": "asero"
+    },
+    {
+      "id": 6,
+      "email": "alvinlisangari111@gmail.com",
+      "password": "$2a$10$8dFBuKhyAfniQRwKvWDFoOGEtL8j0KRPYhvsXvbzxTHL7yNRV5IqG",
+      "role": "admin",
+      "firstName": "alvin",
+      "lastName": "lisann",
+      "otherName": null,
+      "name": "alvin lisann"
+    },
+    {
+      "id": 7,
+      "email": "learner@gmail.com",
+      "password": "$2a$10$uYsqfiCzhZcMU1TXOIuHueSFgX3stZfI5BYHQ6JyyODooDPJpIlMq",
+      "role": "learner",
+      "firstName": "Musa",
+      "lastName": "Moses",
+      "name": "Musa Moses"
+    },
+    {
+      "id": 8,
+      "email": "teacher@gmail.com",
+      "password": "$2a$10$X09CSde.d.ROAJO0OdSXH.B7Dpk2.jc9QADkg3/GFjAqSRFTJVwTO",
+      "role": "teacher",
+      "firstName": "kaluluu",
+      "lastName": "mshevi",
+      "otherName": null,
+      "name": "kaluluu mshevi"
+    },
+    {
+      "id": 9,
+      "email": "parent@gmail.com",
+      "password": "$2a$10$vUpl/KS0T.sDkKPUwBfDTunFU062icqScCKpX62s4LGgmUj7xkf4q",
+      "role": "parent",
+      "firstName": "mayii",
+      "lastName": "Alvin",
+      "otherName": null,
+      "name": "mayii Alvin"
+    }
+  ]
+}

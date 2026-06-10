@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ZORACHI — Learn at Home</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+          <h2>Login</h2>
+          <form id="authForm">
+            <label>Email address
+              <input id="loginEmail" type="email" placeholder="Email address" />
+            </label>
+            <label>Password
+              <input id="loginPassword" type="password" placeholder="Password" />
+            </label>
+            <label>Role
+              <select id="loginRole">
+                <option value="learner">Learner</option>
+                <option value="teacher">Teacher</option>
+                <option value="parent">Parent</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <label class="signup-field hidden" id="firstNameLabel">First Name
+              <input type="text" id="loginFirstName" placeholder="First Name" />
+            </label>
+            <label class="signup-field hidden" id="lastNameLabel">Last Name
+              <input type="text" id="loginLastName" placeholder="Last Name" />
+            </label>
+            <label class="signup-field hidden" id="otherNameLabel">Other Name (optional)
+              <input type="text" id="loginOtherName" placeholder="Other Name (optional)" />
+            </label>
+            <button id="loginAction" type="submit">Log in</button>
+          </form>
+          <p class="login-footer hidden" id="forgotHelp">Enter your account email, choose your role, and set a new password.</p>
+          <p class="login-footer" id="authHelp">Use any email and password to log in or sign up.</p>
+          <p class="login-footer" id="forgotPasswordText"><a href="#" id="forgotPasswordLink">Forgot password?</a></p>
+          <p class="login-footer" id="authToggleText">Don't have an account?</p>
+          <p class="login-footer"><a href="#" id="authToggleLink">Sign up</a></p>
+        </div>
+      </div>
+
+      <div class="container hidden" id="appScreen">
+        <header class="app-header">
+          <div>
+            <h1>ZORACHI</h1>
+            <p>Learning platform for learners, teachers and parents</p>
+          </div>
+          <div class="user-chip">
+            <span id="userInfo"></span>
+            <span id="unreadBadge" class="badge hidden"></span>
+            <button id="logoutButton">Logout</button>
+          </div>
+        </header>
+
+        <main>
+          <section id="messagesPanel" class="panel">
+            <h2>Messages</h2>
+            <div class="message-filters" id="messageFilters">
+              <button type="button" class="filter-button active" id="filterAll">All</button>
+              <button type="button" class="filter-button" id="filterUnread">Unread</button>
+              <button type="button" class="filter-button" id="filterUnresolved">Unresolved</button>
+              <button type="button" class="filter-button" id="filterResolved">Resolved</button>
+            </div>
+            <div id="messages"></div>
+            <form id="messageForm">
+              <input id="messageText" placeholder="Write a message" />
+              <input id="messageTo" placeholder="To (optional)" />
+              <label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="indexMessage" type="checkbox" /> Index with Claude</label>
+              <button type="submit">Send</button>
+              <div class="form-status" id="messageStatus"></div>
+            </form>
+          </section>
+
+          <section id="assignmentsPanel" class="panel">
+            <h2>Assignments</h2>
+            <div id="teacherSearchArea" class="hidden" style="margin-bottom: 15px;">
+              <div style="display: flex; gap: 8px;">
+                <input id="submissionSearch" placeholder="Search learner name..." style="flex: 1;" />
+                <button id="searchButton" type="button" style="width: auto; padding: 0 15px;">Search</button>
+              </div>
+            </div>
+            <div id="assignments"></div>
+            <form id="assignmentForm" class="hidden">
+              <input id="assignmentTitle" placeholder="Title" />
+              <input id="assignmentDesc" placeholder="Description (optional)" />
+              <label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="indexAssignment" type="checkbox" /> Index with Claude</label>
+              <button type="submit">Create Assignment</button>
+              <div class="form-status" id="assignmentStatus"></div>
+            </form>
+          </section>
+
+          <section id="adminPanel" class="panel hidden">
+            <h2>Admin Dashboard</h2>
+            <div class="admin-stats">
+              <div class="stat-card">
+                <strong id="adminUsersCount">0</strong>
+                <span>Users</span>
+              </div>
+              <div class="stat-card">
+                <strong id="adminMessagesCount">0</strong>
+                <span>Messages</span>
+              </div>
+              <div class="stat-card">
+                <strong id="adminAssignmentsCount">0</strong>
+                <span>Assignments</span>
+              </div>
+            </div>
+            <div class="admin-users">
+              <h3>Users</h3>
+              <div id="userList"></div>
+            </div>
+          </section>
+
+          <section id="embeddingSearchPanel" class="panel hidden">
+            <h2>Search Embeddings</h2>
+            <form id="embeddingSearchForm">
+              <input id="searchQuery" placeholder="Search your indexed content" />
+              <button type="submit">Search</button>
+            </form>
+            <div id="searchResults"></div>
+          </section>
+        </main>
+
+        <footer>
+          <small>Demo — data is stored in memory while server runs.</small>
+        </footer>
+      </div>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>
