@@ -37,12 +37,12 @@ function updateUI() {
   $('adminPanel').classList.toggle('hidden', !isStaff);
   $('embeddingSearchPanel').classList.toggle('hidden', !isStaff);
   $('teacherSearchArea').classList.toggle('hidden', !isStaff);
-  $('attendanceSection')?.classList.toggle('hidden', !isStaff);
+  $('teacherHubSection')?.classList.toggle('hidden', !isStaff);
   $('userInfo').textContent = `${identity.name} • ${identity.role}`;
   document.body.className = identity.role;
   updateUnreadBadge();
   if (isStaff) {
-    initAttendanceUI();
+    initTeacherHub();
     refreshAdmin();
   }
 }
@@ -258,7 +258,7 @@ function renderAssignments(list) {
     d.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:start;">
         <div>
-          <h3>${escapeHtml(a.title)}</h3>
+          <h3>${escapeHtml(a.title)} <small style="font-weight:normal; font-size:0.6em; color:#666;">(Target: ${escapeHtml(a.target || 'All')})</small></h3>
           <p>${escapeHtml(a.description || '')}</p>
           <small>By ${escapeHtml(a.teacher)}</small>
         </div>
@@ -609,90 +609,61 @@ function renderAssignments(list) {
   });
 }
 
-async function refreshAttendance() {
-  const container = $('attendanceSection');
-  if (!container || container.classList.contains('hidden')) return;
-
-  const list = $('attendanceList');
-  const dateInput = $('attendanceDate');
-  if (!list || !dateInput) return;
-
-  const date = dateInput.value;
-  let learners = [];
-  let records = {};
-
-  try {
-    const [learnersRes, recordsRes] = await Promise.all([
-      authFetch('/api/learners'),
-      authFetch(`/api/attendance/${date}`)
-    ]);
-
-    if (!learnersRes.ok) {
-      const errorData = await learnersRes.json().catch(() => ({}));
-      throw new Error(errorData.error || `Server returned ${learnersRes.status} for learners`);
-    }
-    if (!recordsRes.ok) {
-      const errorData = await recordsRes.json().catch(() => ({}));
-      throw new Error(errorData.error || `Server returned ${recordsRes.status} for attendance`);
-    }
-
-    const learnersData = await learnersRes.json();
-    const recordsData = await recordsRes.json();
-    
-    if (!Array.isArray(learnersData)) {
-      throw new Error('Expected learner list to be an array');
-    }
-
-    learners = learnersData;
-    records = recordsData || {};
-  } catch (err) {
-    console.error('Detailed Attendance Refresh Error:', err);
-    list.innerHTML = `<div style="padding:15px; border:1px solid red; background:#fffafa; color:red; border-radius:4px;">
-      <strong>Failed to load attendance list</strong><br>
-      <small>${escapeHtml(err.message)}</small>
-    </div>`;
+async function initTeacherHub() {
+  if ($('teacherHubSection')) {
+    refreshTeacherHub();
     return;
   }
 
-  list.innerHTML = '';
-  if (learners.length === 0) {
-    list.innerHTML = '<div style="padding:15px; color:#666; font-style:italic;">No learners have submitted assignments yet.</div>';
-    return;
-  }
-  learners.forEach(l => {
-    const div = document.createElement('div');
-    div.style = "display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;";
-    const status = records[l.name] || 'absent';
-    div.innerHTML = `
-      <span>${escapeHtml(l.name)}</span>
-      <select class="att-status" data-name="${escapeHtml(l.name)}">
-        <option value="present" ${status === 'present' ? 'selected' : ''}>Present</option>
-        <option value="absent" ${status === 'absent' ? 'selected' : ''}>Absent</option>
-      </select>
-    `;
-    list.appendChild(div);
-  });
-}
-
-async function initAttendanceUI() {
-  if ($('attendanceSection')) {
-    refreshAttendance();
-    return;
-  }
   const container = document.createElement('div');
-  container.id = 'attendanceSection';
+  container.id = 'teacherHubSection';
   container.className = 'section staff-only';
   container.innerHTML = `
-    <div class="header-row">
-      <h2>Learner Attendance</h2>
-      <input type="date" id="attendanceDate" value="${new Date().toISOString().split('T')[0]}">
+    <div style="background:#f8f9fa; border-radius:12px; padding:20px; border:1px solid #dee2e6;">
+      <div style="display:flex; gap:20px; margin-bottom:20px; border-bottom:2px solid #eee; padding-bottom:10px;">
+        <button id="tabAttendance" style="background:none; border:none; font-weight:bold; cursor:pointer; color:#007bff;">Attendance Management</button>
+        <button id="tabGradebook" style="background:none; border:none; font-weight:bold; cursor:pointer; color:#666;">Global Marksheet</button>
+      </div>
+
+      <div id="attendanceContent">
+        <div class="header-row" style="margin-bottom:15px;">
+          <h2 style="margin:0;">Mark Attendance</h2>
+          <div style="display:flex; gap:10px; align-items:center;">
+             <input type="date" id="attendanceDate" value="${new Date().toISOString().split('T')[0]}" style="padding:5px;">
+             <button id="markAllPresent" style="font-size:0.8em; background:#6c757d; color:white; border:none; padding:5px 10px; border-radius:4px;">Mark All Present</button>
+          </div>
+        </div>
+        <div id="attendanceList" style="background:white; border-radius:8px; overflow:hidden;"></div>
+        <button id="saveAttendanceBtn" style="margin-top:15px; width:100%; background:#28a745; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer;">Save Attendance Records</button>
+      </div>
+
+      <div id="gradebookContent" class="hidden">
+        <h2 style="margin-top:0;">Global Gradebook</h2>
+        <div id="gradebookTable" style="overflow-x:auto;"></div>
+      </div>
     </div>
-    <div id="attendanceList" style="margin-top:10px;"></div>
-    <button id="saveAttendanceBtn" style="margin-top:10px; background:#007bff; color:white; border:none; padding:8px 16px; border-radius:4px;">Save Attendance</button>
   `;
   $('appScreen').appendChild(container);
 
-  $('attendanceDate').addEventListener('change', refreshAttendance);
+  $('tabAttendance').onclick = () => {
+    $('attendanceContent').classList.remove('hidden');
+    $('gradebookContent').classList.add('hidden');
+    $('tabAttendance').style.color = '#007bff';
+    $('tabGradebook').style.color = '#666';
+  };
+  $('tabGradebook').onclick = () => {
+    $('attendanceContent').classList.add('hidden');
+    $('gradebookContent').classList.remove('hidden');
+    $('tabAttendance').style.color = '#666';
+    $('tabGradebook').style.color = '#007bff';
+    refreshGradebook();
+  };
+
+  $('attendanceDate').addEventListener('change', refreshTeacherHub);
+  $('markAllPresent').onclick = () => {
+    document.querySelectorAll('.att-status').forEach(sel => sel.value = 'present');
+  };
+
   $('saveAttendanceBtn').addEventListener('click', async () => {
     const btn = $('saveAttendanceBtn');
     const date = $('attendanceDate').value;
@@ -722,7 +693,70 @@ async function initAttendanceUI() {
     }
   });
 
-  refreshAttendance();
+  refreshTeacherHub();
+}
+
+async function refreshTeacherHub() {
+  const list = $('attendanceList');
+  const date = $('attendanceDate').value;
+  if (!list) return;
+
+  try {
+    const [learners, records] = await Promise.all([
+      authFetch('/api/learners').then(r => r.json()),
+      authFetch(`/api/attendance/${date}`).then(r => r.json())
+    ]);
+    
+    list.innerHTML = '';
+    if (!learners.length) {
+      list.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No students found with submissions.</div>';
+      return;
+    }
+
+    learners.forEach(l => {
+      const status = records[l.name] || 'absent';
+      const row = document.createElement('div');
+      row.style = "display:flex; justify-content:space-between; align-items:center; padding:12px 20px; border-bottom:1px solid #eee;";
+      row.innerHTML = `
+        <strong>${escapeHtml(l.name)}</strong>
+        <select class="att-status" data-name="${escapeHtml(l.name)}" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
+          <option value="present" ${status === 'present' ? 'selected' : ''}>Present</option>
+          <option value="absent" ${status === 'absent' ? 'selected' : ''}>Absent</option>
+        </select>
+      `;
+      list.appendChild(row);
+    });
+  } catch (err) { console.warn('Attendance refresh failed', err); }
+}
+
+async function refreshGradebook() {
+  const tableDiv = $('gradebookTable');
+  if (!tableDiv) return;
+  try {
+    const report = await authFetch('/api/gradebook').then(r => r.json());
+    let html = `<table style="width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden;">
+      <thead><tr style="background:#eee; text-align:left;">
+        <th style="padding:10px; border:1px solid #ddd;">Assignment</th>
+        <th style="padding:10px; border:1px solid #ddd;">Learner</th>
+        <th style="padding:10px; border:1px solid #ddd;">Grade</th>
+      </tr></thead><tbody>`;
+    
+    report.forEach(a => {
+      if (a.grades.length === 0) {
+        html += `<tr><td style="padding:10px; border:1px solid #ddd;">${escapeHtml(a.title)}</td><td colspan="2" style="padding:10px; border:1px solid #ddd; color:#999; font-style:italic;">No submissions</td></tr>`;
+      } else {
+        a.grades.forEach((g, idx) => {
+          html += `<tr>
+            ${idx === 0 ? `<td rowspan="${a.grades.length}" style="padding:10px; border:1px solid #ddd; vertical-align:top; font-weight:bold;">${escapeHtml(a.title)}</td>` : ''}
+            <td style="padding:10px; border:1px solid #ddd;">${escapeHtml(g.learner)}</td>
+            <td style="padding:10px; border:1px solid #ddd;"><span style="background:#e9ecef; padding:2px 8px; border-radius:4px;">${escapeHtml(g.grade)}</span></td>
+          </tr>`;
+        });
+      }
+    });
+    html += '</tbody></table>';
+    tableDiv.innerHTML = html;
+  } catch (err) { tableDiv.innerHTML = 'Error loading gradebook.'; }
 }
 
 function renderAdminUsers(users) {
@@ -866,6 +900,20 @@ function renderMessageNode(msg, level = 0) {
         resolveButton.disabled = false;
       }
     });
+
+  // Add Recipient Selector to Assignment Form
+  const assignForm = $('assignmentForm');
+  if (assignForm) {
+    const label = document.createElement('label');
+    label.style = 'display:block; margin-bottom:10px; font-size:0.9em;';
+    label.innerHTML = `Target Learners: 
+      <select id="assignmentTarget" style="width:100%; margin-top:5px; padding:8px;">
+        <option value="All Learners">All Learners</option>
+        <option value="Group A">Group A</option>
+        <option value="Group B">Group B</option>
+      </select>`;
+    assignForm.insertBefore(label, $('assignmentDesc').nextSibling);
+  }
   }
 
   d.appendChild(actions);
@@ -1019,6 +1067,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       setFormStatus(statusId, 'Message saved.');
       await refresh();
+      const msgList = $('messages');
+      msgList.scrollTop = msgList.scrollHeight; // Auto-scroll for chat feel
     } catch (err) {
       setFormStatus(statusId, 'Unable to save message.', true);
       console.warn(err);

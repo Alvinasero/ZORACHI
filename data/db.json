@@ -203,6 +203,51 @@
           "gradedBy": "kaluluu mshevi"
         }
       ]
+    },
+    {
+      "id": 3,
+      "title": "Python project",
+      "description": "create a simple python code that displays your name",
+      "teacher": "kaluluu mshevi",
+      "createdAt": "2026-06-11T11:04:11.431Z",
+      "submissions": [
+        {
+          "id": 1,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "print(\"Mussa moses\")",
+          "attachment": null,
+          "time": "2026-06-11T11:05:37.782Z",
+          "grade": "A",
+          "recommendation": "KEEP UP!",
+          "gradedAt": "2026-06-11T11:08:40.496Z",
+          "gradedBy": "kaluluu mshevi"
+        },
+        {
+          "id": 2,
+          "learner": "alex aleko",
+          "parent": null,
+          "content": "print(\"alex aleko\")",
+          "attachment": null,
+          "time": "2026-06-11T11:06:29.811Z",
+          "grade": "A",
+          "recommendation": "GOOD!",
+          "gradedAt": "2026-06-11T11:08:25.740Z",
+          "gradedBy": "kaluluu mshevi"
+        },
+        {
+          "id": 3,
+          "learner": "mike miko",
+          "parent": null,
+          "content": "print\"mike miko\"",
+          "attachment": null,
+          "time": "2026-06-11T11:07:09.656Z",
+          "grade": "E",
+          "recommendation": "REPEAT IT!",
+          "gradedAt": "2026-06-11T11:08:12.369Z",
+          "gradedBy": "kaluluu mshevi"
+        }
+      ]
     }
   ],
   "users": [

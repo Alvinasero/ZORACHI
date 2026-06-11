@@ -242,13 +242,12 @@ app.get('/api/assignments', authenticateToken, (req, res) => {
 app.get('/api/learners', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
   try {
     const db = readDb();
-    const assignments = db.assignments;
+    const assignments = db.assignments || [];
     const allUsers = db.users;
     
     const activeLearnerNames = new Set();
     assignments.forEach(a => {
-      const subs = Array.isArray(a.submissions) ? a.submissions : [];
-      subs.forEach(s => {
+      (a.submissions || []).forEach(s => {
         if (s && typeof s.learner === 'string' && s.learner.trim()) {
           activeLearnerNames.add(s.learner.trim());
         }
@@ -259,9 +258,9 @@ app.get('/api/learners', authenticateToken, requireRole(['teacher', 'admin']), (
     const processedNames = new Set();
     const normalizedActiveNames = new Set([...activeLearnerNames].map(n => n.toLowerCase()));
 
-    // Match against registered users
+    // Match against registered users to get emails
     allUsers.forEach(u => {
-      if (!u || u.role !== 'learner' || typeof u.name !== 'string') return;
+      if (!u || u.role !== 'learner' || !u.name) return;
       
       const lowerName = u.name.toLowerCase();
       if (normalizedActiveNames.has(lowerName)) {
@@ -274,7 +273,7 @@ app.get('/api/learners', authenticateToken, requireRole(['teacher', 'admin']), (
     activeLearnerNames.forEach(learnerName => {
       const lowerName = learnerName.toLowerCase();
       if (!processedNames.has(lowerName)) {
-        learnersForAttendance.push({ name: learnerName, email: null });
+        learnersForAttendance.push({ name: learnerName, email: 'No direct account' });
         processedNames.add(lowerName);
       }
     });
@@ -287,12 +286,30 @@ app.get('/api/learners', authenticateToken, requireRole(['teacher', 'admin']), (
   }
 });
 
+app.get('/api/gradebook', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
+  const db = readDb();
+  const report = (db.assignments || []).map(a => ({
+    id: a.id,
+    title: a.title,
+    grades: (a.submissions || []).map(s => ({ learner: s.learner, grade: s.grade || 'N/A' }))
+  }));
+  res.json(report);
+});
+
 app.post('/api/assignments', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, target } = req.body;
   if (!title) return res.status(400).json({ error: 'Assignment title is required' });
   const db = readDb();
   db.assignments = db.assignments || [];
-  const assignment = { id: nextId(db.assignments), title, description: description || '', teacher: req.user.name, createdAt: now(), submissions: [] };
+  const assignment = { 
+    id: nextId(db.assignments), 
+    title, 
+    description: description || '', 
+    target: target || 'All Learners',
+    teacher: req.user.name, 
+    createdAt: now(), 
+    submissions: [] 
+  };
   db.assignments.push(assignment);
   writeDb(db);
   res.json(assignment);
