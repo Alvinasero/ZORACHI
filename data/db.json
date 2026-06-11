@@ -58,9 +58,9 @@
           "parent": null,
           "content": "loamy",
           "time": "2026-06-09T15:36:41.692Z",
-          "grade": "C",
-          "recommendation": "put more effots! You have ability!",
-          "gradedAt": "2026-06-10T10:15:04.713Z",
+          "grade": "B",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:42:38.990Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -68,21 +68,33 @@
           "learner": "Musa Moses",
           "parent": null,
           "content": "sand",
-          "time": "2026-06-09T15:36:49.284Z"
+          "time": "2026-06-09T15:36:49.284Z",
+          "grade": "C",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:42:44.352Z",
+          "gradedBy": "kaluluu mshevi"
         },
         {
           "id": 4,
           "learner": "Musa Moses",
           "parent": null,
           "content": "and other",
-          "time": "2026-06-09T15:37:47.954Z"
+          "time": "2026-06-09T15:37:47.954Z",
+          "grade": "A",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:42:52.176Z",
+          "gradedBy": "kaluluu mshevi"
         },
         {
           "id": 5,
           "learner": "Musa Moses",
           "parent": null,
           "content": "huuuuh",
-          "time": "2026-06-09T16:05:12.724Z"
+          "time": "2026-06-09T16:05:12.724Z",
+          "grade": "Y",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:43:01.368Z",
+          "gradedBy": "kaluluu mshevi"
         },
         {
           "id": 6,
@@ -91,7 +103,11 @@
           "content": "clay soils",
           "attachment": null,
           "time": "2026-06-09T16:26:34.626Z",
-          "updatedAt": "2026-06-10T10:04:52.014Z"
+          "updatedAt": "2026-06-10T10:04:52.014Z",
+          "grade": "A",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:43:08.093Z",
+          "gradedBy": "kaluluu mshevi"
         },
         {
           "id": 7,
@@ -99,7 +115,11 @@
           "parent": null,
           "content": "loamy",
           "attachment": null,
-          "time": "2026-06-09T16:27:43.011Z"
+          "time": "2026-06-09T16:27:43.011Z",
+          "grade": "A",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:43:13.466Z",
+          "gradedBy": "kaluluu mshevi"
         },
         {
           "id": 8,
@@ -107,7 +127,11 @@
           "parent": null,
           "content": "hello sir, here are my assignments that I did last week and also yeaterday, have finished them and are all ready to be submitted now!",
           "attachment": null,
-          "time": "2026-06-10T08:31:43.064Z"
+          "time": "2026-06-10T08:31:43.064Z",
+          "grade": "B",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:43:21.317Z",
+          "gradedBy": "kaluluu mshevi"
         },
         {
           "id": 9,
@@ -115,7 +139,11 @@
           "parent": null,
           "content": "now is done",
           "attachment": "fileUpload-1781084792371.jpg",
-          "time": "2026-06-10T09:46:32.397Z"
+          "time": "2026-06-10T09:46:32.397Z",
+          "grade": "A",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:43:26.049Z",
+          "gradedBy": "kaluluu mshevi"
         },
         {
           "id": 11,
@@ -123,7 +151,52 @@
           "parent": "mayii Alvin",
           "content": "all the modelling techniques were implemented correctly and more concisely",
           "attachment": "fileUpload-1781088735959.jpg",
-          "time": "2026-06-10T10:52:16.144Z"
+          "time": "2026-06-10T10:52:16.144Z",
+          "grade": "B",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T09:43:34.663Z",
+          "gradedBy": "kaluluu mshevi"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "topography",
+      "description": "state any 4 types of topographical maps",
+      "teacher": "kaluluu mshevi",
+      "createdAt": "2026-06-11T09:10:54.487Z",
+      "submissions": [
+        {
+          "id": 1,
+          "learner": "Musa Moses",
+          "parent": null,
+          "content": "relief\r\ndrainage\r\ncliatic\r\nlong drought",
+          "attachment": "fileUpload-1781170895468.jpg",
+          "time": "2026-06-11T09:41:35.541Z"
+        },
+        {
+          "id": 2,
+          "learner": "alex aleko",
+          "parent": null,
+          "content": "fully described by the image below",
+          "attachment": "fileUpload-1781172602246.jpg",
+          "time": "2026-06-11T10:10:02.336Z",
+          "grade": "B",
+          "recommendation": "try up",
+          "gradedAt": "2026-06-11T10:12:37.098Z",
+          "gradedBy": "kaluluu mshevi"
+        },
+        {
+          "id": 3,
+          "learner": "mike miko",
+          "parent": null,
+          "content": "oyugis\r\nkijabe\r\nmaasai mara\r\nembakasi",
+          "attachment": "fileUpload-1781172704414.jpg",
+          "time": "2026-06-11T10:11:44.433Z",
+          "grade": "B",
+          "recommendation": "do better than this",
+          "gradedAt": "2026-06-11T10:12:58.571Z",
+          "gradedBy": "kaluluu mshevi"
         }
       ]
     }
@@ -202,6 +275,34 @@
       "lastName": "Alvin",
       "otherName": null,
       "name": "mayii Alvin"
+    },
+    {
+      "id": 10,
+      "email": "learner1@gmail.com",
+      "password": "$2a$10$WCQwEoykk/bMyFhD.eTitOMrNi8j64aR09KmbSSU5btOIU6PJgiwa",
+      "role": "learner",
+      "firstName": "alex",
+      "lastName": "aleko",
+      "otherName": null,
+      "name": "alex aleko"
+    },
+    {
+      "id": 11,
+      "email": "learner2@gmail.com",
+      "password": "$2a$10$oQd9LiKxhUuBdLQkj7hrpuuEmvOFDgJSpz2yqBlriPQkuLz50MMH.",
+      "role": "learner",
+      "firstName": "mike",
+      "lastName": "miko",
+      "otherName": null,
+      "name": "mike miko"
     }
-  ]
+  ],
+  "attendance": {
+    "2026-06-11": {
+      "alex aleko": "present",
+      "mike miko": "present",
+      "Musa Moses": "present",
+      "peter keter": "present"
+    }
+  }
 }

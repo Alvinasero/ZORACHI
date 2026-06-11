@@ -8,6 +8,7 @@ let seenMessageIds = new Set();
 let unreadCount = 0;
 let messageFilter = 'all';
 let submissionSearchQuery = '';
+let bulkGradingAssignmentId = null;
 
 function setToken(token) {
   if (token) localStorage.setItem('zorachi_token', token);
@@ -36,10 +37,12 @@ function updateUI() {
   $('adminPanel').classList.toggle('hidden', !isStaff);
   $('embeddingSearchPanel').classList.toggle('hidden', !isStaff);
   $('teacherSearchArea').classList.toggle('hidden', !isStaff);
+  $('attendanceSection')?.classList.toggle('hidden', !isStaff);
   $('userInfo').textContent = `${identity.name} • ${identity.role}`;
   document.body.className = identity.role;
   updateUnreadBadge();
   if (isStaff) {
+    initAttendanceUI();
     refreshAdmin();
   }
 }
@@ -245,13 +248,89 @@ function renderAssignments(list) {
     return subs.some(s => s.learner.toLowerCase().includes(query));
   });
 
-  filteredAssignments.forEach(a => {
+  filteredAssignments.forEach(async (a) => {
     const d = document.createElement('div');
     d.className = 'assignment';
-    d.innerHTML = `<h3>${escapeHtml(a.title)}</h3><p>${escapeHtml(a.description || '')}</p><small>By ${escapeHtml(a.teacher)}</small>`;
+    
+    const isStaff = identity.role === 'teacher' || identity.role === 'admin';
+    const isBulkMode = bulkGradingAssignmentId === a.id;
+
+    d.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:start;">
+        <div>
+          <h3>${escapeHtml(a.title)}</h3>
+          <p>${escapeHtml(a.description || '')}</p>
+          <small>By ${escapeHtml(a.teacher)}</small>
+        </div>
+        ${isStaff ? `<button class="bulk-toggle-btn" style="background:#6c757d; font-size:0.8em;">${isBulkMode ? 'Exit Bulk Grading' : 'Bulk Grade Submissions'}</button>` : ''}
+      </div>
+    `;
+
+    d.querySelector('.bulk-toggle-btn')?.addEventListener('click', () => {
+      bulkGradingAssignmentId = isBulkMode ? null : a.id;
+      renderAssignments(list);
+    });
+
     const ul = document.createElement('div');
     ul.className = 'submissions';
-    ul.innerHTML = '<strong>Submissions:</strong>';
+
+    if (isBulkMode) {
+      ul.innerHTML = `
+        <div style="margin-top:15px; background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.9em;">
+            <thead>
+              <tr style="border-bottom:2px solid #eee; text-align:left;">
+                <th style="padding:8px;">Learner</th>
+                <th style="padding:8px;">Content Preview</th>
+                <th style="padding:8px;">Grade</th>
+                <th style="padding:8px;">Recommendation</th>
+              </tr>
+            </thead>
+            <tbody id="bulkTableBody-${a.id}"></tbody>
+          </table>
+          <div style="margin-top:10px; text-align:right;">
+            <button class="save-bulk-btn" style="background:#28a745; color:white; border:none; padding:8px 20px; border-radius:4px; cursor:pointer;">Save All Marks</button>
+          </div>
+        </div>
+      `;
+
+      const tbody = ul.querySelector(`#bulkTableBody-${a.id}`);
+      a.submissions.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #eee';
+        tr.dataset.submissionId = s.id;
+        tr.innerHTML = `
+          <td style="padding:8px;"><strong>${escapeHtml(s.learner)}</strong></td>
+          <td style="padding:8px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(s.content)}</td>
+          <td style="padding:8px;"><input type="text" class="bulk-grade" value="${escapeHtml(s.grade || '')}" style="width:60px;"></td>
+          <td style="padding:8px;"><input type="text" class="bulk-rec" value="${escapeHtml(s.recommendation || '')}" style="width:100%;"></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      ul.querySelector('.save-bulk-btn').addEventListener('click', async () => {
+        const results = Array.from(tbody.querySelectorAll('tr')).map(tr => ({
+          submissionId: Number(tr.dataset.submissionId),
+          grade: tr.querySelector('.bulk-grade').value.trim(),
+          recommendation: tr.querySelector('.bulk-rec').value.trim()
+        }));
+        
+        try {
+          const res = await authFetch(`/api/assignments/${a.id}/bulk-grade`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ results })
+          });
+          if (!res.ok) throw new Error('Bulk update failed');
+          alert('All marks uploaded successfully!');
+          bulkGradingAssignmentId = null;
+          refresh();
+        } catch (err) { alert(err.message); }
+      });
+
+    } else {
+      ul.innerHTML = '<strong>Submissions:</strong>';
+    }
     
     // Filter submissions based on teacher search query
     let submissions = Array.isArray(a.submissions) ? a.submissions : [];
@@ -274,7 +353,7 @@ function renderAssignments(list) {
       none.className = 'submission none';
       none.textContent = submissionSearchQuery ? 'No matching submissions found.' : 'No submissions yet.';
       ul.appendChild(none);
-    } else {
+    } else if (!isBulkMode) {
       submissions.forEach(s => {
         const si = document.createElement('div');
         si.className = 'submission';
@@ -323,7 +402,6 @@ function renderAssignments(list) {
             </div>`;
         }
 
-        const isStaff = identity.role === 'teacher' || identity.role === 'admin';
         let gradingForm = '';
         if (isStaff) {
           gradingForm = `
@@ -529,6 +607,122 @@ function renderAssignments(list) {
 
     el.appendChild(d);
   });
+}
+
+async function refreshAttendance() {
+  const container = $('attendanceSection');
+  if (!container || container.classList.contains('hidden')) return;
+
+  const list = $('attendanceList');
+  const dateInput = $('attendanceDate');
+  if (!list || !dateInput) return;
+
+  const date = dateInput.value;
+  let learners = [];
+  let records = {};
+
+  try {
+    const [learnersRes, recordsRes] = await Promise.all([
+      authFetch('/api/learners'),
+      authFetch(`/api/attendance/${date}`)
+    ]);
+
+    if (!learnersRes.ok) {
+      const errorData = await learnersRes.json().catch(() => ({}));
+      throw new Error(errorData.error || `Server returned ${learnersRes.status} for learners`);
+    }
+    if (!recordsRes.ok) {
+      const errorData = await recordsRes.json().catch(() => ({}));
+      throw new Error(errorData.error || `Server returned ${recordsRes.status} for attendance`);
+    }
+
+    const learnersData = await learnersRes.json();
+    const recordsData = await recordsRes.json();
+    
+    if (!Array.isArray(learnersData)) {
+      throw new Error('Expected learner list to be an array');
+    }
+
+    learners = learnersData;
+    records = recordsData || {};
+  } catch (err) {
+    console.error('Detailed Attendance Refresh Error:', err);
+    list.innerHTML = `<div style="padding:15px; border:1px solid red; background:#fffafa; color:red; border-radius:4px;">
+      <strong>Failed to load attendance list</strong><br>
+      <small>${escapeHtml(err.message)}</small>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  if (learners.length === 0) {
+    list.innerHTML = '<div style="padding:15px; color:#666; font-style:italic;">No learners have submitted assignments yet.</div>';
+    return;
+  }
+  learners.forEach(l => {
+    const div = document.createElement('div');
+    div.style = "display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;";
+    const status = records[l.name] || 'absent';
+    div.innerHTML = `
+      <span>${escapeHtml(l.name)}</span>
+      <select class="att-status" data-name="${escapeHtml(l.name)}">
+        <option value="present" ${status === 'present' ? 'selected' : ''}>Present</option>
+        <option value="absent" ${status === 'absent' ? 'selected' : ''}>Absent</option>
+      </select>
+    `;
+    list.appendChild(div);
+  });
+}
+
+async function initAttendanceUI() {
+  if ($('attendanceSection')) {
+    refreshAttendance();
+    return;
+  }
+  const container = document.createElement('div');
+  container.id = 'attendanceSection';
+  container.className = 'section staff-only';
+  container.innerHTML = `
+    <div class="header-row">
+      <h2>Learner Attendance</h2>
+      <input type="date" id="attendanceDate" value="${new Date().toISOString().split('T')[0]}">
+    </div>
+    <div id="attendanceList" style="margin-top:10px;"></div>
+    <button id="saveAttendanceBtn" style="margin-top:10px; background:#007bff; color:white; border:none; padding:8px 16px; border-radius:4px;">Save Attendance</button>
+  `;
+  $('appScreen').appendChild(container);
+
+  $('attendanceDate').addEventListener('change', refreshAttendance);
+  $('saveAttendanceBtn').addEventListener('click', async () => {
+    const btn = $('saveAttendanceBtn');
+    const date = $('attendanceDate').value;
+    const records = {};
+    document.querySelectorAll('.att-status').forEach(sel => {
+      records[sel.dataset.name] = sel.value;
+    });
+    
+    if (Object.keys(records).length === 0) return alert('No learners to mark attendance for.');
+
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const res = await authFetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, records })
+      });
+      const data = await res.json();
+      if (res.ok) alert('Attendance saved successfully for ' + date);
+      else throw new Error(data.error || 'Failed to save attendance');
+    } catch (err) { alert(err.message); }
+    finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Attendance';
+    }
+  });
+
+  refreshAttendance();
 }
 
 function renderAdminUsers(users) {
@@ -765,6 +959,7 @@ async function refresh() {
   updateUnreadBadge();
   renderMessages(currentMessages);
   renderAssignments(assigns);
+  refreshAttendance();
 }
 
 function setMessageFilter(filter) {

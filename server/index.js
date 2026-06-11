@@ -31,18 +31,34 @@ const dbPath = path.join(dataDir, 'db.json');
 
 function ensureDb() {
   if (!fs.existsSync(dbPath)) {
-    const init = { users: [], messages: [], assignments: [] };
+    const init = { users: [], messages: [], assignments: [], attendance: {} };
     fs.writeFileSync(dbPath, JSON.stringify(init, null, 2));
   }
 }
 
 function readDb() {
   ensureDb();
-  return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+  try {
+    const data = fs.readFileSync(dbPath, 'utf8');
+    const db = JSON.parse(data || '{}');
+    // Ensure mandatory structures exist
+    db.users = Array.isArray(db.users) ? db.users : [];
+    db.messages = Array.isArray(db.messages) ? db.messages : [];
+    db.assignments = Array.isArray(db.assignments) ? db.assignments : [];
+    db.attendance = (db.attendance && typeof db.attendance === 'object') ? db.attendance : {};
+    return db;
+  } catch (err) {
+    console.error('Database read error:', err);
+    return { users: [], messages: [], assignments: [], attendance: {} };
+  }
 }
 
 function writeDb(db) {
-  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+  try {
+    fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+  } catch (err) {
+    console.error('Database write error:', err);
+  }
 }
 
 const now = () => new Date().toISOString();
@@ -223,6 +239,54 @@ app.get('/api/assignments', authenticateToken, (req, res) => {
   res.json(db.assignments);
 });
 
+app.get('/api/learners', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
+  try {
+    const db = readDb();
+    const assignments = db.assignments;
+    const allUsers = db.users;
+    
+    const activeLearnerNames = new Set();
+    assignments.forEach(a => {
+      const subs = Array.isArray(a.submissions) ? a.submissions : [];
+      subs.forEach(s => {
+        if (s && typeof s.learner === 'string' && s.learner.trim()) {
+          activeLearnerNames.add(s.learner.trim());
+        }
+      });
+    });
+
+    const learnersForAttendance = [];
+    const processedNames = new Set();
+    const normalizedActiveNames = new Set([...activeLearnerNames].map(n => n.toLowerCase()));
+
+    // Match against registered users
+    allUsers.forEach(u => {
+      if (!u || u.role !== 'learner' || typeof u.name !== 'string') return;
+      
+      const lowerName = u.name.toLowerCase();
+      if (normalizedActiveNames.has(lowerName)) {
+        learnersForAttendance.push({ name: u.name, email: u.email || null });
+        processedNames.add(lowerName);
+      }
+    });
+
+    // Add learners who submitted but don't have a direct account
+    activeLearnerNames.forEach(learnerName => {
+      const lowerName = learnerName.toLowerCase();
+      if (!processedNames.has(lowerName)) {
+        learnersForAttendance.push({ name: learnerName, email: null });
+        processedNames.add(lowerName);
+      }
+    });
+
+    learnersForAttendance.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    res.json(learnersForAttendance);
+  } catch (err) {
+    console.error('Detailed server error in /api/learners:', err);
+    res.status(500).json({ error: 'Server error retrieving learners: ' + err.message });
+  }
+});
+
 app.post('/api/assignments', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
   const { title, description } = req.body;
   if (!title) return res.status(400).json({ error: 'Assignment title is required' });
@@ -389,6 +453,51 @@ app.put('/api/assignments/:assignmentId/submissions/:submissionId/grade', authen
 
   writeDb(db);
   res.json(submission);
+});
+
+app.post('/api/assignments/:id/bulk-grade', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
+  const id = Number(req.params.id);
+  const { results } = req.body; // Array of { submissionId, grade, recommendation }
+  if (!Array.isArray(results)) return res.status(400).json({ error: 'Results array required' });
+
+  const db = readDb();
+  const assignment = db.assignments.find(a => a.id === id);
+  if (!assignment) return res.status(404).json({ error: 'Assignment not found' });
+
+  results.forEach(r => {
+    const sub = assignment.submissions.find(s => s.id === r.submissionId);
+    if (sub) {
+      sub.grade = r.grade;
+      sub.recommendation = r.recommendation || null;
+      sub.gradedAt = now();
+      sub.gradedBy = req.user.name;
+    }
+  });
+
+  writeDb(db);
+  res.json({ success: true });
+});
+
+app.get('/api/attendance/:date', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
+  try {
+    const db = readDb();
+    const attendance = db.attendance || {};
+    res.json(attendance[req.params.date] || {});
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch attendance records' });
+  }
+});
+
+app.post('/api/attendance', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
+  const { date, records } = req.body; // records: { "Learner Name": "present"|"absent" }
+  if (!date || !records || typeof records !== 'object') {
+    return res.status(400).json({ error: 'Valid date and attendance records are required' });
+  }
+  const db = readDb();
+  db.attendance = db.attendance || {};
+  db.attendance[date] = records;
+  writeDb(db);
+  res.json({ success: true });
 });
 
 // Standard way to serve the uploaded files directory
