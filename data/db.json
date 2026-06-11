@@ -49,7 +49,7 @@
           "time": "2026-06-09T15:36:34.282Z",
           "grade": "B",
           "recommendation": "Kepp up",
-          "gradedAt": "2026-06-10T10:14:06.844Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -60,7 +60,7 @@
           "time": "2026-06-09T15:36:41.692Z",
           "grade": "B",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:42:38.990Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -71,7 +71,7 @@
           "time": "2026-06-09T15:36:49.284Z",
           "grade": "C",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:42:44.352Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -82,7 +82,7 @@
           "time": "2026-06-09T15:37:47.954Z",
           "grade": "A",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:42:52.176Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -93,7 +93,7 @@
           "time": "2026-06-09T16:05:12.724Z",
           "grade": "Y",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:43:01.368Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -106,7 +106,7 @@
           "updatedAt": "2026-06-10T10:04:52.014Z",
           "grade": "A",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:43:08.093Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -118,7 +118,7 @@
           "time": "2026-06-09T16:27:43.011Z",
           "grade": "A",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:43:13.466Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -130,7 +130,7 @@
           "time": "2026-06-10T08:31:43.064Z",
           "grade": "B",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:43:21.317Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -142,7 +142,7 @@
           "time": "2026-06-10T09:46:32.397Z",
           "grade": "A",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:43:26.049Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -154,7 +154,7 @@
           "time": "2026-06-10T10:52:16.144Z",
           "grade": "B",
           "recommendation": null,
-          "gradedAt": "2026-06-11T09:43:34.663Z",
+          "gradedAt": "2026-06-11T10:44:30.596Z",
           "gradedBy": "kaluluu mshevi"
         }
       ]
@@ -172,7 +172,11 @@
           "parent": null,
           "content": "relief\r\ndrainage\r\ncliatic\r\nlong drought",
           "attachment": "fileUpload-1781170895468.jpg",
-          "time": "2026-06-11T09:41:35.541Z"
+          "time": "2026-06-11T09:41:35.541Z",
+          "grade": "",
+          "recommendation": null,
+          "gradedAt": "2026-06-11T10:44:57.883Z",
+          "gradedBy": "kaluluu mshevi"
         },
         {
           "id": 2,
@@ -183,7 +187,7 @@
           "time": "2026-06-11T10:10:02.336Z",
           "grade": "B",
           "recommendation": "try up",
-          "gradedAt": "2026-06-11T10:12:37.098Z",
+          "gradedAt": "2026-06-11T10:44:57.883Z",
           "gradedBy": "kaluluu mshevi"
         },
         {
@@ -195,7 +199,7 @@
           "time": "2026-06-11T10:11:44.433Z",
           "grade": "B",
           "recommendation": "do better than this",
-          "gradedAt": "2026-06-11T10:12:58.571Z",
+          "gradedAt": "2026-06-11T10:44:57.883Z",
           "gradedBy": "kaluluu mshevi"
         }
       ]
