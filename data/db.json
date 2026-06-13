@@ -344,6 +344,46 @@
       "lastName": "miko",
       "otherName": null,
       "name": "mike miko"
+    },
+    {
+      "id": 12,
+      "email": "alvens@gmail.com",
+      "password": "$2a$10$uAvh6NVvZLB/PF1BjgFP6ubKp11mvTzswFHR.Dd6IEobPED7h763i",
+      "role": "learner",
+      "firstName": "vensz",
+      "lastName": "lissan",
+      "otherName": null,
+      "name": "vensz lissan"
+    },
+    {
+      "id": 13,
+      "email": "alns@gmail.com",
+      "password": "$2a$10$NPZwBXDvJNQ5fl5nDplmpOFTIOFeIho53AzWjZ4vlz8f92wnmHJm.",
+      "role": "teacher",
+      "firstName": "papaa",
+      "lastName": "Baraza",
+      "otherName": null,
+      "name": "papaa Baraza"
+    },
+    {
+      "id": 14,
+      "email": "vens@gmail.com",
+      "password": "$2a$10$0gRQyKhxFw1wUd23N2yOQuhEPacZ0O.nqNoJ8/rRai0sbDHQnHLom",
+      "role": "learner",
+      "firstName": "Alvin",
+      "lastName": "Lisangari",
+      "otherName": null,
+      "name": "Alvin Lisangari"
+    },
+    {
+      "id": 15,
+      "email": "venzs@gmail.com",
+      "password": "$2a$10$RF6YgewZWhXS0ZY.1K1oE.yjeosMeQhJI2babuuNqKwV.zCcPk6vm",
+      "role": "teacher",
+      "firstName": "Muruma",
+      "lastName": "Oliver",
+      "otherName": null,
+      "name": "Muruma Oliver"
     }
   ],
   "attendance": {
@@ -352,6 +392,37 @@
       "mike miko": "present",
       "Musa Moses": "present",
       "peter keter": "present"
+    },
+    "2026-06-13": {
+      "alex aleko": "absent",
+      "mike miko": "absent",
+      "Musa Moses": "absent",
+      "peter keter": "present"
     }
-  }
+  },
+  "cats": [
+    {
+      "id": 1,
+      "title": "COMPUTER HARDWARE",
+      "description": "1. What is booting process",
+      "teacher": "papaa Baraza",
+      "startTime": "2026-06-13T16:18:00.000Z",
+      "endTime": "2026-06-13T20:00:00.000Z",
+      "createdAt": "2026-06-13T16:17:49.880Z",
+      "submissions": [
+        {
+          "id": 1,
+          "learner": "vensz lissan",
+          "content": "1. Power On and POST (Power-On Self-Test)\nBefore anything can run, the computer needs to make sure its own hardware is functioning.\n\nThe Spark: Pressing the power button sends electricity to the power supply unit (PSU), which distributes it to the motherboard and other components.\n\nThe Brain Awakens: The CPU initializes itself and looks for a small piece of built-in firmware called the BIOS (Basic Input/Output System) or the more modern UEFI (Unified Extensible Firmware Interface) stored on a ROM chip.\n\nThe Health Check: The BIOS/UEFI runs the POST. This is a quick diagnostic scan that checks if essential hardware—like the RAM, keyboard, storage drives, and graphics card—are present and working properly. If you've ever heard your computer make a single \"beep\" when turning on, that’s the POST giving a thumbs-up.\n\n2. Finding the Boot Loader\nOnce the hardware passes inspection, the BIOS/UEFI needs to figure out where the operating system is hiding.\n\nIt looks at a pre-configured list of devices called the Boot Priority/Sequence (e.g., Internal SSD, USB drive, Optical drive).\n\nIn older BIOS systems, it looks for the MBR (Master Boot Record) on the first sector of the drive.\n\nIn modern UEFI systems, it looks for an EFI System Partition to find a standardized boot file.\n\n3. Loading the Boot Loader\nOnce the bootable drive is identified, the BIOS/UEFI hands over control to a tiny, specialized piece of software located at the start of that drive called the Boot Loader (common examples include Windows Boot Manager for Windows or GRUB for Linux).\n\nThe boot loader’s sole purpose in life is to find and wake up the main Operating System kernel.\n\n4. Initializing the OS Kernel\nThe boot loader finds the Kernel (the absolute core of the operating system) on your storage drive and loads it into the system memory (RAM).\n\nThe kernel takes total control of the processor and system resources.\n\nIt detects all the remaining hardware devices and loads their respective device drivers so the OS knows how to talk to your graphics card, Wi-Fi card, and peripherals.\n\nIt also starts essential background services (called daemons or system services) that handle things like security, network connections, and file systems.\n\n5. Launching the User Space\nWith the kernel fully operational, the computer transitions from a blank background to the visual world you interact with.\n\nThe OS launches the Authentication/Login Manager.\n\nOnce you log in, your desktop environment, user preferences, and startup applications are loaded into memory.",
+          "time": "2026-06-13T16:21:11.387Z"
+        },
+        {
+          "id": 2,
+          "learner": "Alvin Lisangari",
+          "content": "1. Power On and POST (Power-On Self-Test)\nBefore anything can run, the computer needs to make sure its own hardware is functioning.\n\nThe Spark: Pressing the power button sends electricity to the power supply unit (PSU), which distributes it to the motherboard and other components.\n\nThe Brain Awakens: The CPU initializes itself and looks for a small piece of built-in firmware called the BIOS (Basic Input/Output System) or the more modern UEFI (Unified Extensible Firmware Interface) stored on a ROM chip.\n\nThe Health Check: The BIOS/UEFI runs the POST. This is a quick diagnostic scan that checks if essential hardware—like the RAM, keyboard, storage drives, and graphics card—are present and working properly. If you've ever heard your computer make a single \"beep\" when turning on, that’s the POST giving a thumbs-up.\n\n2. Finding the Boot Loader\nOnce the hardware passes inspection, the BIOS/UEFI needs to figure out where the operating system is hiding.\n\nIt looks at a pre-configured list of devices called the Boot Priority/Sequence (e.g., Internal SSD, USB drive, Optical drive).\n\nIn older BIOS systems, it looks for the MBR (Master Boot Record) on the first sector of the drive.\n\nIn modern UEFI systems, it looks for an EFI System Partition to find a standardized boot file.\n\n3. Loading the Boot Loader\nOnce the bootable drive is identified, the BIOS/UEFI hands over control to a tiny, specialized piece of software located at the start of that drive called the Boot Loader (common examples include Windows Boot Manager for Windows or GRUB for Linux).\n\nThe boot loader’s sole purpose in life is to find and wake up the main Operating System kernel.\n\n4. Initializing the OS Kernel\nThe boot loader finds the Kernel (the absolute core of the operating system) on your storage drive and loads it into the system memory (RAM).\n\nThe kernel takes total control of the processor and system resources.\n\nIt detects all the remaining hardware devices and loads their respective device drivers so the OS knows how to talk to your graphics card, Wi-Fi card, and peripherals.\n\nIt also starts essential background services (called daemons or system services) that handle things like security, network connections, and file systems.\n\n5. Launching the User Space\nWith the kernel fully operational, the computer transitions from a blank background to the visual world you interact with.\n\nThe OS launches the Authentication/Login Manager.\n\nOnce you log in, your desktop environment, user preferences, and startup applications are loaded into memory.",
+          "time": "2026-06-13T16:44:20.499Z"
+        }
+      ]
+    }
+  ]
 }

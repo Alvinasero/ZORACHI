@@ -31,7 +31,7 @@ const dbPath = path.join(dataDir, 'db.json');
 
 function ensureDb() {
   if (!fs.existsSync(dbPath)) {
-    const init = { users: [], messages: [], assignments: [], attendance: {} };
+    const init = { users: [], messages: [], assignments: [], attendance: {}, cats: [] };
     fs.writeFileSync(dbPath, JSON.stringify(init, null, 2));
   }
 }
@@ -46,10 +46,11 @@ function readDb() {
     db.messages = Array.isArray(db.messages) ? db.messages : [];
     db.assignments = Array.isArray(db.assignments) ? db.assignments : [];
     db.attendance = (db.attendance && typeof db.attendance === 'object') ? db.attendance : {};
+    db.cats = Array.isArray(db.cats) ? db.cats : [];
     return db;
   } catch (err) {
     console.error('Database read error:', err);
-    return { users: [], messages: [], assignments: [], attendance: {} };
+    return { users: [], messages: [], assignments: [], attendance: {}, cats: [] };
   }
 }
 
@@ -99,6 +100,7 @@ function authenticateToken(req, res, next) {
   const auth = req.headers.authorization;
   const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : req.query.token;
   if (!token) return res.status(401).json({ error: 'Authorization required' });
+
   try {
     const payload = jwt.verify(token, JWT_SECRET);
     req.user = payload;
@@ -516,6 +518,67 @@ app.post('/api/attendance', authenticateToken, requireRole(['teacher', 'admin'])
   writeDb(db);
   res.json({ success: true });
 });
+
+app.get('/api/cats', authenticateToken, (req, res) => {
+  const db = readDb();
+  res.json(db.cats || []);
+});
+
+app.post('/api/cats', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
+  const { title, description, startTime, endTime } = req.body;
+  if (!title || !startTime || !endTime) return res.status(400).json({ error: 'Title, start time, and end time are required' });
+  const db = readDb();
+  const cat = { 
+    id: nextId(db.cats), 
+    title, 
+    description: description || '', 
+    teacher: req.user.name, 
+    startTime, 
+    endTime, 
+    createdAt: now(), 
+    submissions: [] 
+  };
+  db.cats.push(cat);
+  writeDb(db);
+  res.json(cat);
+});
+
+app.post('/api/cats/:id/submit', authenticateToken, requireRole('learner'), (req, res) => {
+  const id = Number(req.params.id);
+  const { content } = req.body;
+  const db = readDb();
+  const cat = db.cats.find(x => x.id === id);
+  if (!cat) return res.status(404).json({ error: 'CAT not found' });
+  const currentTime = now();
+  if (currentTime < cat.startTime || currentTime > cat.endTime) return res.status(403).json({ error: 'CAT is not available at this time' });
+  if (cat.submissions.some(s => s.learner === req.user.name)) return res.status(400).json({ error: 'You have already attempted this CAT' });
+  const sub = { id: nextId(cat.submissions), learner: req.user.name, content, time: currentTime };
+  cat.submissions.push(sub);
+  writeDb(db);
+  res.json(sub);
+});
+
+app.put('/api/cats/:catId/submissions/:submissionId/grade', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
+  const catId = Number(req.params.catId);
+  const submissionId = Number(req.params.submissionId);
+  const { grade, recommendation } = req.body;
+
+  const db = readDb();
+  const cat = db.cats.find(c => c.id === catId);
+  if (!cat) return res.status(404).json({ error: 'CAT not found' });
+
+  const submission = cat.submissions.find(s => s.id === submissionId);
+  if (!submission) return res.status(404).json({ error: 'Submission not found' });
+
+  submission.grade = grade;
+  submission.recommendation = recommendation || null;
+  submission.gradedAt = now();
+  submission.gradedBy = req.user.name;
+
+  writeDb(db);
+  res.json(submission);
+});
+
 
 // Standard way to serve the uploaded files directory
 app.use('/uploads', express.static(uploadDir));

@@ -37,6 +37,25 @@ function updateUI() {
   $('adminPanel').classList.toggle('hidden', !isStaff);
   $('embeddingSearchPanel').classList.toggle('hidden', !isStaff);
   $('teacherSearchArea').classList.toggle('hidden', !isStaff);
+
+  // Setup Assignment Target Selector (One-time setup for staff)
+  if (isStaff && !$('assignmentTarget')) {
+    const desc = $('assignmentDesc');
+    if (desc) {
+      const label = document.createElement('label');
+      label.style = 'display:block; margin-bottom:10px; font-size:0.9em;';
+      label.innerHTML = `Target Learners: 
+        <select id="assignmentTarget" style="width:100%; margin-top:5px; padding:8px;">
+          <option value="All Learners">All Learners</option>
+          <option value="Group A">Group A</option>
+          <option value="Group B">Group B</option>
+        </select>`;
+      desc.parentNode.insertBefore(label, desc.nextSibling);
+    }
+  }
+
+  initCATSection();
+  $('catTeacherForm')?.classList.toggle('hidden', !isStaff);
   $('teacherHubSection')?.classList.toggle('hidden', !isStaff);
   $('userInfo').textContent = `${identity.name} • ${identity.role}`;
   document.body.className = identity.role;
@@ -173,9 +192,15 @@ function logoutUser() {
 async function restoreSession() {
   const token = getToken();
   if (!token) return;
+  
   const res = await authFetch('/api/profile');
-  if (!res.ok) { logoutUser(); return; }
-  identity = await res.json();
+  if (res.ok) {
+    identity = await res.json();
+  } else {
+    // Fallback if session expired
+    return logoutUser();
+  }
+
   updateUI();
   showScreen(true);
   connectEventSource();
@@ -184,6 +209,11 @@ async function restoreSession() {
 
 async function fetchMessages() {
   const r = await authFetch('/api/messages');
+  return await r.json();
+}
+
+async function fetchCats() {
+  const r = await authFetch('/api/cats');
   return await r.json();
 }
 
@@ -234,6 +264,211 @@ function renderMessages(list) {
   tree.forEach(msg => {
     el.appendChild(renderMessageNode(msg));
   });
+}
+
+function initCATSection() {
+  if ($('catSection')) return;
+  const d = document.createElement('div');
+  d.id = 'catSection';
+  d.className = 'section cat-section'; // Added a specific class for CAT section
+  d.innerHTML = `
+    <h2>Continuous Assessment Tests (CATs)</h2>
+    <div id="catTeacherForm" class="hidden">
+      <div class="form-box" style="background:#fff3cd; border:1px solid #ffeeba; padding:15px; border-radius:8px; margin-bottom:20px;">
+        <h3>Create New CAT</h3>
+        <input id="catTitle" placeholder="CAT Title" style="width:100%; margin-bottom:10px; padding:8px;" />
+        <textarea id="catDesc" placeholder="Instructions/Questions" style="width:100%; height:80px; margin-bottom:10px; padding:8px;"></textarea>
+        <div style="display:flex; gap:10px; margin-bottom:10px; font-size:0.9em;">
+          <label>Start: <input type="datetime-local" id="catStart" /></label>
+          <label>End: <input type="datetime-local" id="catEnd" /></label>
+        </div>
+        <button id="saveCAT" style="background:#ffc107; color:#212529; border:none; padding:10px 20px; border-radius:4px; font-weight:bold;">Schedule CAT</button>
+      </div>
+    </div>
+    <div id="catsList"></div>
+    <div id="catAttemptArea" class="hidden" style="margin-top:20px; padding:20px; background:#e2f3f5; border-radius:8px; border:1px solid #bee5eb;">
+        <h3 id="attemptTitle"></h3>
+        <p id="attemptDesc" style="white-space:pre-wrap;"></p>
+        <textarea id="catResponse" placeholder="Type your answers here..." style="width:100%; height:150px; padding:10px; margin-bottom:10px;"></textarea>
+        <button id="submitCAT" style="background:#17a2b8; color:white; border:none; padding:10px 20px; border-radius:4px;">Submit Attempt</button>
+        <button id="cancelCAT" style="background:#6c757d; color:white; border:none; padding:10px 20px; border-radius:4px; margin-left:10px;">Cancel</button>
+    </div>
+  `;
+  $('appScreen').appendChild(d);
+
+  $('saveCAT').onclick = async () => {
+    const title = $('catTitle').value.trim();
+    const description = $('catDesc').value.trim();
+    
+    const catStartValue = $('catStart').value;
+    const catEndValue = $('catEnd').value;
+
+    let startTime = null;
+    let endTime = null;
+
+    if (catStartValue) {
+      const date = new Date(catStartValue);
+      if (!isNaN(date.getTime())) { // Check if date is valid
+        startTime = date.toISOString();
+      }
+    }
+    if (catEndValue) {
+      const date = new Date(catEndValue);
+      if (!isNaN(date.getTime())) { // Check if date is valid
+        endTime = date.toISOString();
+      }
+    }
+    if (!title || !startTime || !endTime) return alert('Please provide title and scheduled times');
+    
+    const res = await authFetch('/api/cats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, description, startTime, endTime })
+    });
+    if (res.ok) {
+        $('catTitle').value = ''; $('catDesc').value = '';
+        refresh();
+        alert('CAT scheduled successfully!');
+    } else alert('Failed to schedule CAT');
+  };
+
+  $('cancelCAT').onclick = () => $('catAttemptArea').classList.add('hidden');
+}
+
+function renderCats(list) {
+  const el = $('catsList');
+  if (!el) return;
+  el.innerHTML = '';
+  const isStaff = identity.role === 'teacher' || identity.role === 'admin';
+
+  if (!list.length) el.innerHTML = '<p style="color:#666; font-style:italic;">No CATs scheduled.</p>';
+  list.forEach(cat => {
+    const d = document.createElement('div');
+    d.style = "background:white; padding:15px; border-radius:8px; margin-bottom:10px; border:1px solid #ddd; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
+    const hasSubmitted = cat.submissions.some(s => s.learner === identity.name);
+
+    let catActionsHtml = '';
+    if (isStaff) {
+      // Teachers/Admins don't "enter" a CAT, they manage it and grade submissions
+      catActionsHtml = ''; // No button here, submissions will be listed below
+    } else {
+      // Learners can enter if not submitted, or see submitted status
+      catActionsHtml = hasSubmitted ? '<span style="color:#28a745; font-weight:bold;">✔ Submitted</span>' : `<button class="enter-cat-btn" style="background:#007bff; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">Enter CAT</button>`;
+    }
+
+    d.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+        <div>
+          <h4 style="margin:0;">${escapeHtml(cat.title)}</h4>
+          <small style="color:#888;">Window: ${new Date(cat.startTime).toLocaleString()} - ${new Date(cat.endTime).toLocaleString()}</small>
+        </div>
+        ${catActionsHtml}
+      </div>
+      <div class="cat-submissions-list" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;"></div>
+    `;
+
+    if (!isStaff) {
+      d.querySelector('.enter-cat-btn')?.addEventListener('click', () => {
+        const now = new Date().toISOString();
+        if (now < cat.startTime || now > cat.endTime) {
+          alert('no cats available');
+          logoutUser(); // Log out if attempting outside the window
+          return;
+        }
+        showCATAttemptForm(cat);
+      });
+    }
+
+    const submissionsListEl = d.querySelector('.cat-submissions-list');
+    let submissionsToDisplay = cat.submissions;
+
+    if (!isStaff) {
+      // Learners only see their own submission
+      submissionsToDisplay = cat.submissions.filter(s => s.learner === identity.name);
+    }
+
+    if (submissionsToDisplay.length === 0) {
+      submissionsListEl.innerHTML = '<p style="color:#666; font-style:italic;">No submissions yet.</p>';
+    } else {
+      submissionsToDisplay.forEach(s => {
+        const subDiv = document.createElement('div');
+        subDiv.style = "background:#f8f9fa; padding:10px; border-radius:6px; margin-bottom:8px; border:1px solid #e9ecef;";
+        
+        let gradeInfoHtml = '';
+        if (s.grade) {
+          gradeInfoHtml = `
+            <div style="margin-top: 8px; padding: 8px; background:#e2f5e9; border-left: 3px solid #28a745; border-radius: 4px;">
+              <strong>Grade:</strong> ${escapeHtml(s.grade)}
+              ${s.recommendation ? `<br><strong>Recommendation:</strong> ${escapeHtml(s.recommendation)}` : ''}
+              <small style="display:block; color:#777;">Graded by ${escapeHtml(s.gradedBy)} on ${new Date(s.gradedAt).toLocaleString()}</small>
+            </div>
+          `;
+        }
+
+        let gradingFormHtml = '';
+        if (isStaff) {
+          gradingFormHtml = `
+            <div class="cat-grading-form" style="margin-top: 10px; padding: 10px; background: #fff; border: 1px dashed #ccc; border-radius: 4px;">
+              <input type="text" class="cat-grade-input" placeholder="Enter Grade (e.g. A, Excellent)" value="${escapeHtml(s.grade || '')}" style="width: 150px; margin-bottom: 5px; display: block;">
+              <textarea class="cat-recommendation-input" placeholder="Enter Recommendation (optional)" style="width: 100%; height: 50px; margin-bottom: 5px; display: block;">${escapeHtml(s.recommendation || '')}</textarea>
+              <button type="button" class="save-cat-grade-btn" data-cat-id="${cat.id}" data-submission-id="${s.id}" style="font-size: 0.8em; background: #28a745; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer;">Save Grade</button>
+            </div>
+          `;
+        }
+
+        subDiv.innerHTML = `
+          <strong>${escapeHtml(s.learner)}</strong> submitted on ${new Date(s.time).toLocaleString()}
+          <p style="white-space:pre-wrap; margin-top:5px; margin-bottom:0;">${escapeHtml(s.content)}</p>
+          ${gradeInfoHtml}
+          ${gradingFormHtml}
+        `;
+        submissionsListEl.appendChild(subDiv);
+      });
+
+      // Add event listeners for save grade buttons for CATs
+      submissionsListEl.querySelectorAll('.save-cat-grade-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const catId = e.target.dataset.catId;
+          const submissionId = e.target.dataset.submissionId;
+          const form = e.target.closest('.cat-grading-form');
+          const grade = form.querySelector('.cat-grade-input').value.trim();
+          const recommendation = form.querySelector('.cat-recommendation-input').value.trim();
+          if (!grade) return alert('Please enter a grade before saving.');
+          await saveCatGrade(catId, submissionId, grade, recommendation);
+        });
+    });
+    }
+    el.appendChild(d);
+  });
+}
+
+function showCATAttemptForm(cat) {
+    $('catAttemptArea').classList.remove('hidden');
+    $('attemptTitle').textContent = cat.title;
+    $('attemptDesc').textContent = cat.description;
+    $('catResponse').value = '';
+    $('submitCAT').onclick = async () => {
+        const content = $('catResponse').value.trim();
+        if (!content) return alert('Answer cannot be empty');
+        const res = await authFetch(`/api/cats/${cat.id}/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) });
+        if (res.ok) { alert('CAT submitted successfully!'); $('catAttemptArea').classList.add('hidden'); refresh(); }
+        else { const err = await res.json(); alert(err.error || 'Submission failed'); }
+    };
+}
+
+async function saveCatGrade(catId, submissionId, grade, recommendation) {
+    try {
+        const res = await authFetch(`/api/cats/${catId}/submissions/${submissionId}/grade`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ grade, recommendation })
+        });
+        if (res.ok) { alert('Grade saved successfully!'); $('catAttemptArea').classList.add('hidden'); refresh(); }
+        else { const err = await res.json(); alert(err.error || 'Submission failed'); }
+    } catch (err) {
+        alert('Failed to save CAT grade: ' + err.message);
+        console.error('Error saving CAT grade:', err);
+    }
 }
 
 function renderAssignments(list) {
@@ -415,7 +650,7 @@ function renderAssignments(list) {
         si.innerHTML = `
           <em>${escapeHtml(s.learner)}</em> ${escapeHtml(s.parent ? ' (helped by ' + s.parent + ')' : '')}
           <div class="submission-body" style="margin: 5px 0;">
-            <div class="content-text">${escapeHtml(s.content)}</div>
+            <div class="content-text" style="white-space: pre-wrap; font-size: 0.95em; color: #333;">${escapeHtml(s.content)}</div>
           </div>
           ${attachmentInfo}
           ${gradeInfo}
@@ -900,20 +1135,6 @@ function renderMessageNode(msg, level = 0) {
         resolveButton.disabled = false;
       }
     });
-
-  // Add Recipient Selector to Assignment Form
-  const assignForm = $('assignmentForm');
-  if (assignForm) {
-    const label = document.createElement('label');
-    label.style = 'display:block; margin-bottom:10px; font-size:0.9em;';
-    label.innerHTML = `Target Learners: 
-      <select id="assignmentTarget" style="width:100%; margin-top:5px; padding:8px;">
-        <option value="All Learners">All Learners</option>
-        <option value="Group A">Group A</option>
-        <option value="Group B">Group B</option>
-      </select>`;
-    assignForm.insertBefore(label, $('assignmentDesc').nextSibling);
-  }
   }
 
   d.appendChild(actions);
@@ -1000,14 +1221,14 @@ async function indexText(text, sourceType, sourceId) {
 
 async function refresh() {
   if (!identity) return;
-  const [msgs, assigns] = await Promise.all([fetchMessages(), fetchAssignments()]);
+  const [msgs, assigns, cats] = await Promise.all([fetchMessages(), fetchAssignments(), fetchCats()]);
   currentMessages = msgs || [];
   currentMessages.forEach(msg => seenMessageIds.add(msg.id));
   unreadCount = 0;
   updateUnreadBadge();
   renderMessages(currentMessages);
   renderAssignments(assigns);
-  refreshAttendance();
+  renderCats(cats);
 }
 
 function setMessageFilter(filter) {
