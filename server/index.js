@@ -288,15 +288,39 @@ app.get('/api/learners', authenticateToken, requireRole(['teacher', 'admin']), (
   }
 });
 
-app.get('/api/gradebook', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {
+app.get('/api/gradebook', authenticateToken, (req, res) => {
   const db = readDb();
-  const report = (db.assignments || []).map(a => ({
+  const isStaff = ['teacher', 'admin'].includes(req.user.role);
+  
+  const assignments = (db.assignments || []).map(a => ({
     id: a.id,
     title: a.title,
+    type: 'Assignment',
     createdAt: a.createdAt,
-    grades: (a.submissions || []).map(s => ({ learner: s.learner, grade: s.grade || 'N/A' }))
-  }));
-  res.json(report);
+    grades: (a.submissions || [])
+      .filter(s => isStaff || s.learner === req.user.name)
+      .map(s => ({
+        learner: s.learner,
+        grade: s.grade || 'N/A',
+        recommendation: s.recommendation || null
+      }))
+  })).filter(a => isStaff || a.grades.length > 0);
+
+  const cats = (db.cats || []).map(c => ({
+    id: c.id,
+    title: c.title,
+    type: 'CAT',
+    createdAt: c.createdAt,
+    grades: (c.submissions || [])
+      .filter(s => isStaff || s.learner === req.user.name)
+      .map(s => ({
+        learner: s.learner,
+        grade: s.grade || 'N/A',
+        recommendation: s.recommendation || null
+      }))
+  })).filter(c => isStaff || c.grades.length > 0);
+
+  res.json([...assignments, ...cats]);
 });
 
 app.post('/api/assignments', authenticateToken, requireRole(['teacher', 'admin']), (req, res) => {

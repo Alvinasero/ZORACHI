@@ -33,10 +33,12 @@ function showScreen(authenticated) {
 
 function updateUI() {
   const isStaff = identity.role === 'teacher' || identity.role === 'admin';
+  const isLearner = identity.role === 'learner';
   $('assignmentForm').classList.toggle('hidden', !isStaff);
   $('adminPanel').classList.toggle('hidden', !isStaff);
   $('embeddingSearchPanel').classList.toggle('hidden', !isStaff);
   $('teacherSearchArea').classList.toggle('hidden', !isStaff);
+  $('teacherHubSection')?.classList.toggle('hidden', !(isStaff || isLearner));
 
   // Setup Assignment Target Selector (One-time setup for staff)
   if (isStaff && !$('assignmentTarget')) {
@@ -56,13 +58,12 @@ function updateUI() {
 
   initCATSection();
   $('catTeacherForm')?.classList.toggle('hidden', !isStaff);
-  $('teacherHubSection')?.classList.toggle('hidden', !isStaff);
   $('userInfo').textContent = `${identity.name} • ${identity.role}`;
   document.body.className = identity.role;
   updateUnreadBadge();
-  if (isStaff) {
+  if (isStaff || isLearner) {
     initTeacherHub();
-    refreshAdmin();
+    if (isStaff) refreshAdmin();
   }
 }
 
@@ -850,22 +851,20 @@ function renderAssignments(list) {
   });
 }
 
-async function initTeacherHub() {
-  if ($('teacherHubSection')) {
-    refreshTeacherHub();
-    return;
-  }
-
+function initTeacherHub() {
+  if ($('teacherHubSection')) return;
+  const isStaff = identity.role === 'teacher' || identity.role === 'admin';
   const container = document.createElement('div');
   container.id = 'teacherHubSection';
-  container.className = 'section staff-only';
+  container.className = 'section';
   container.innerHTML = `
     <div style="background:#f8f9fa; border-radius:12px; padding:20px; border:1px solid #dee2e6;">
       <div style="display:flex; gap:20px; margin-bottom:20px; border-bottom:2px solid #eee; padding-bottom:10px;">
-        <button id="tabAttendance" style="background:none; border:none; font-weight:bold; cursor:pointer; color:#007bff;">Attendance Management</button>
-        <button id="tabGradebook" style="background:none; border:none; font-weight:bold; cursor:pointer; color:#666;">Global Marksheet</button>
+        ${isStaff ? '<button id="tabAttendance" style="background:none; border:none; font-weight:bold; cursor:pointer; color:#007bff;">Attendance Management</button>' : ''}
+        <button id="tabGradebook" style="background:none; border:none; font-weight:bold; cursor:pointer; color:${isStaff ? '#666' : '#007bff'};">${isStaff ? 'Global Marksheet' : 'My Grades & Performance'}</button>
       </div>
 
+      ${isStaff ? `
       <div id="attendanceContent">
         <div class="header-row" style="margin-bottom:15px;">
           <h2 style="margin:0;">Mark Attendance</h2>
@@ -874,67 +873,67 @@ async function initTeacherHub() {
              <button id="markAllPresent" style="font-size:0.8em; background:#6c757d; color:white; border:none; padding:5px 10px; border-radius:4px;">Mark All Present</button>
           </div>
         </div>
-        <div id="attendanceList" style="background:white; border-radius:8px; overflow:hidden;"></div>
-        <button id="saveAttendanceBtn" style="margin-top:15px; width:100%; background:#28a745; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer;">Save Attendance Records</button>
-      </div>
+      </div>` : ''}
 
-      <div id="gradebookContent" class="hidden">
-        <h2 style="margin-top:0;">Global Gradebook</h2>
+      <div id="gradebookContent" class="${isStaff ? 'hidden' : ''}">
+        <h2 style="margin-top:0;">${isStaff ? 'Global Gradebook' : 'My Academic Progress'}</h2>
         <div id="gradebookTable" style="overflow-x:auto;"></div>
       </div>
     </div>
   `;
   $('appScreen').appendChild(container);
 
-  $('tabAttendance').onclick = () => {
-    $('attendanceContent').classList.remove('hidden');
-    $('gradebookContent').classList.add('hidden');
-    $('tabAttendance').style.color = '#007bff';
-    $('tabGradebook').style.color = '#666';
-  };
-  $('tabGradebook').onclick = () => {
-    $('attendanceContent').classList.add('hidden');
-    $('gradebookContent').classList.remove('hidden');
-    $('tabAttendance').style.color = '#666';
-    $('tabGradebook').style.color = '#007bff';
-    refreshGradebook();
-  };
+  if (isStaff) {
+    $('tabAttendance').onclick = () => {
+      $('attendanceContent').classList.remove('hidden');
+      $('gradebookContent').classList.add('hidden');
+      $('tabAttendance').style.color = '#007bff';
+      $('tabGradebook').style.color = '#666';
+    };
+    $('tabGradebook').onclick = () => {
+      $('attendanceContent').classList.add('hidden');
+      $('gradebookContent').classList.remove('hidden');
+      $('tabAttendance').style.color = '#666';
+      $('tabGradebook').style.color = '#007bff';
+      refreshGradebook();
+    };
+    $('attendanceDate').addEventListener('change', refreshTeacherHub);
+    $('markAllPresent').onclick = () => {
+      document.querySelectorAll('.att-status').forEach(sel => sel.value = 'present');
+    };
 
-  $('attendanceDate').addEventListener('change', refreshTeacherHub);
-  $('markAllPresent').onclick = () => {
-    document.querySelectorAll('.att-status').forEach(sel => sel.value = 'present');
-  };
-
-  $('saveAttendanceBtn').addEventListener('click', async () => {
-    const btn = $('saveAttendanceBtn');
-    const date = $('attendanceDate').value;
-    const records = {};
-    document.querySelectorAll('.att-status').forEach(sel => {
-      records[sel.dataset.name] = sel.value;
-    });
-    
-    if (Object.keys(records).length === 0) return alert('No learners to mark attendance for.');
-
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-
-    try {
-      const res = await authFetch('/api/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, records })
+    $('saveAttendanceBtn').addEventListener('click', async () => {
+      const btn = $('saveAttendanceBtn');
+      const date = $('attendanceDate').value;
+      const records = {};
+      document.querySelectorAll('.att-status').forEach(sel => {
+        records[sel.dataset.name] = sel.value;
       });
-      const data = await res.json();
-      if (res.ok) alert('Attendance saved successfully for ' + date);
-      else throw new Error(data.error || 'Failed to save attendance');
-    } catch (err) { alert(err.message); }
-    finally {
-      btn.disabled = false;
-      btn.textContent = 'Save Attendance';
-    }
-  });
+      
+      if (Object.keys(records).length === 0) return alert('No learners to mark attendance for.');
 
-  refreshTeacherHub();
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const res = await authFetch('/api/attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, records })
+        });
+        const data = await res.json();
+        if (res.ok) alert('Attendance saved successfully for ' + date);
+        else throw new Error(data.error || 'Failed to save attendance');
+      } catch (err) { alert(err.message); }
+      finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Attendance';
+      }
+    });
+    refreshTeacherHub();
+  } else {
+    refreshGradebook();
+  }
 }
 
 async function refreshTeacherHub() {
@@ -973,32 +972,37 @@ async function refreshTeacherHub() {
 async function refreshGradebook() {
   const tableDiv = $('gradebookTable');
   if (!tableDiv) return;
+  const isStaff = identity.role === 'teacher' || identity.role === 'admin';
   try {
     const report = await authFetch('/api/gradebook').then(r => r.json());
     const sortedReport = [...report].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     let html = `<table style="width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden;">
       <thead><tr style="background:#eee; text-align:left;">
-        <th style="padding:10px; border:1px solid #ddd;">Assignment</th>
-        <th style="padding:10px; border:1px solid #ddd;">Learner</th>
+        <th style="padding:10px; border:1px solid #ddd;">Title</th>
+        <th style="padding:10px; border:1px solid #ddd;">Type</th>
+        ${isStaff ? '<th style="padding:10px; border:1px solid #ddd;">Learner</th>' : ''}
         <th style="padding:10px; border:1px solid #ddd;">Grade</th>
+        <th style="padding:10px; border:1px solid #ddd;">Recommendation</th>
       </tr></thead><tbody>`;
     
     sortedReport.forEach(a => {
       if (a.grades.length === 0) {
-        html += `<tr><td style="padding:10px; border:1px solid #ddd;">${escapeHtml(a.title)}</td><td colspan="2" style="padding:10px; border:1px solid #ddd; color:#999; font-style:italic;">No submissions</td></tr>`;
+        html += `<tr><td style="padding:10px; border:1px solid #ddd; font-weight:bold;">${escapeHtml(a.title)}</td><td style="padding:10px; border:1px solid #ddd;">${a.type}</td><td colspan="${isStaff ? 3 : 2}" style="padding:10px; border:1px solid #ddd; color:#999; font-style:italic;">No recorded performance</td></tr>`;
       } else {
         a.grades.forEach((g, idx) => {
           html += `<tr>
             ${idx === 0 ? `<td rowspan="${a.grades.length}" style="padding:10px; border:1px solid #ddd; vertical-align:top; font-weight:bold;">${escapeHtml(a.title)}</td>` : ''}
-            <td style="padding:10px; border:1px solid #ddd;">${escapeHtml(g.learner)}</td>
-            <td style="padding:10px; border:1px solid #ddd;"><span style="background:#e9ecef; padding:2px 8px; border-radius:4px;">${escapeHtml(g.grade)}</span></td>
+            <td style="padding:10px; border:1px solid #ddd;">${a.type}</td>
+            ${isStaff ? `<td style="padding:10px; border:1px solid #ddd;">${escapeHtml(g.learner)}</td>` : ''}
+            <td style="padding:10px; border:1px solid #ddd;"><span style="background:#e9ecef; padding:2px 8px; border-radius:4px; font-weight:bold;">${escapeHtml(g.grade)}</span></td>
+            <td style="padding:10px; border:1px solid #ddd; font-size:0.9em; color:#555;">${escapeHtml(g.recommendation || '—')}</td>
           </tr>`;
         });
       }
     });
     html += '</tbody></table>';
     tableDiv.innerHTML = html;
-  } catch (err) { tableDiv.innerHTML = 'Error loading gradebook.'; }
+  } catch (err) { tableDiv.innerHTML = 'Error loading results.'; }
 }
 
 function renderAdminUsers(users) {
