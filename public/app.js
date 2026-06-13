@@ -341,8 +341,9 @@ function renderCats(list) {
   el.innerHTML = '';
   const isStaff = identity.role === 'teacher' || identity.role === 'admin';
 
-  if (!list.length) el.innerHTML = '<p style="color:#666; font-style:italic;">No CATs scheduled.</p>';
-  list.forEach(cat => {
+  const sortedCats = [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (!sortedCats.length) el.innerHTML = '<p style="color:#666; font-style:italic;">No CATs scheduled.</p>';
+  sortedCats.forEach(cat => {
     const d = document.createElement('div');
     d.style = "background:white; padding:15px; border-radius:8px; margin-bottom:10px; border:1px solid #ddd; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
     const hasSubmitted = cat.submissions.some(s => s.learner === identity.name);
@@ -380,12 +381,14 @@ function renderCats(list) {
     }
 
     const submissionsListEl = d.querySelector('.cat-submissions-list');
-    let submissionsToDisplay = cat.submissions;
+    let submissionsToDisplay = [...cat.submissions];
 
     if (!isStaff) {
       // Learners only see their own submission
-      submissionsToDisplay = cat.submissions.filter(s => s.learner === identity.name);
+      submissionsToDisplay = submissionsToDisplay.filter(s => s.learner === identity.name);
     }
+
+    submissionsToDisplay.sort((a, b) => new Date(b.time) - new Date(a.time));
 
     if (submissionsToDisplay.length === 0) {
       submissionsListEl.innerHTML = '<p style="color:#666; font-style:italic;">No submissions yet.</p>';
@@ -418,7 +421,7 @@ function renderCats(list) {
 
         subDiv.innerHTML = `
           <strong>${escapeHtml(s.learner)}</strong> submitted on ${new Date(s.time).toLocaleString()}
-          <p style="white-space:pre-wrap; margin-top:5px; margin-bottom:0;">${escapeHtml(s.content)}</p>
+          <div class="content-text" style="white-space: pre-wrap; font-size: 1.05em; color: #1a1a1a; margin-top: 10px; margin-bottom: 10px; line-height: 1.6; background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">${escapeHtml(s.content)}</div>
           ${gradeInfoHtml}
           ${gradingFormHtml}
         `;
@@ -481,7 +484,7 @@ function renderAssignments(list) {
     const subs = Array.isArray(a.submissions) ? a.submissions : [];
     const query = submissionSearchQuery.toLowerCase();
     return subs.some(s => s.learner.toLowerCase().includes(query));
-  });
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   filteredAssignments.forEach(async (a) => {
     const d = document.createElement('div');
@@ -530,7 +533,8 @@ function renderAssignments(list) {
       `;
 
       const tbody = ul.querySelector(`#bulkTableBody-${a.id}`);
-      a.submissions.forEach(s => {
+      const sortedSubmissions = [...a.submissions].sort((x, y) => new Date(y.time) - new Date(x.time));
+      sortedSubmissions.forEach(s => {
         const tr = document.createElement('tr');
         tr.style.borderBottom = '1px solid #eee';
         tr.dataset.submissionId = s.id;
@@ -568,7 +572,7 @@ function renderAssignments(list) {
     }
     
     // Filter submissions based on teacher search query
-    let submissions = Array.isArray(a.submissions) ? a.submissions : [];
+    let submissions = [...(Array.isArray(a.submissions) ? a.submissions : [])];
 
     // Role-based visibility: Learners and parents see only their own submissions
     if (identity.role === 'learner') {
@@ -582,6 +586,8 @@ function renderAssignments(list) {
         s.learner.toLowerCase().includes(submissionSearchQuery.toLowerCase())
       );
     }
+
+    submissions.sort((a, b) => new Date(b.time) - new Date(a.time));
 
     if (submissions.length === 0) {
       const none = document.createElement('div');
@@ -969,6 +975,7 @@ async function refreshGradebook() {
   if (!tableDiv) return;
   try {
     const report = await authFetch('/api/gradebook').then(r => r.json());
+    const sortedReport = [...report].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     let html = `<table style="width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden;">
       <thead><tr style="background:#eee; text-align:left;">
         <th style="padding:10px; border:1px solid #ddd;">Assignment</th>
@@ -976,7 +983,7 @@ async function refreshGradebook() {
         <th style="padding:10px; border:1px solid #ddd;">Grade</th>
       </tr></thead><tbody>`;
     
-    report.forEach(a => {
+    sortedReport.forEach(a => {
       if (a.grades.length === 0) {
         html += `<tr><td style="padding:10px; border:1px solid #ddd;">${escapeHtml(a.title)}</td><td colspan="2" style="padding:10px; border:1px solid #ddd; color:#999; font-style:italic;">No submissions</td></tr>`;
       } else {
@@ -997,7 +1004,8 @@ async function refreshGradebook() {
 function renderAdminUsers(users) {
   const el = $('userList');
   el.innerHTML = '';
-  users.forEach(user => { // Assuming user object now contains firstName, lastName, otherName
+  const sortedUsers = [...users].sort((a, b) => b.id - a.id); // Sort by ID descending (newest first)
+  sortedUsers.forEach(user => {
     const card = document.createElement('div');
     card.className = 'user-card';
     card.innerHTML = `<strong>${escapeHtml(user.name)}</strong> <span>${escapeHtml(user.role)}</span><div>${escapeHtml(user.email)}</div>`;
@@ -1091,10 +1099,10 @@ function buildMessageTree(messages) {
       roots.push(msg);
     }
   });
-  const sortByTime = (a, b) => new Date(a.time) - new Date(b.time);
+  const sortByTime = (a, b) => new Date(b.time) - new Date(a.time);
   const sortTree = (list) => {
     list.sort(sortByTime);
-    list.forEach(item => sortTree(item.replies));
+    list.forEach(item => sortTree(item.replies)); // Keep replies chronological
   };
   sortTree(roots);
   return roots;

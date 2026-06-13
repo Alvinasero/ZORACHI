@@ -293,6 +293,7 @@ app.get('/api/gradebook', authenticateToken, requireRole(['teacher', 'admin']), 
   const report = (db.assignments || []).map(a => ({
     id: a.id,
     title: a.title,
+    createdAt: a.createdAt,
     grades: (a.submissions || []).map(s => ({ learner: s.learner, grade: s.grade || 'N/A' }))
   }));
   res.json(report);
