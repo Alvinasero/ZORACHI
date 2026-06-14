@@ -384,6 +384,16 @@
       "lastName": "Oliver",
       "otherName": null,
       "name": "Muruma Oliver"
+    },
+    {
+      "id": 16,
+      "email": "samokech@gmail.com",
+      "password": "$2a$10$MQGyPZvkSRf2rtepP4Basu79hLIhkGWQ64Jj34tjwz4EIoSmLsWDW",
+      "role": "learner",
+      "firstName": "sam",
+      "lastName": "okech",
+      "otherName": null,
+      "name": "sam okech"
     }
   ],
   "attendance": {
