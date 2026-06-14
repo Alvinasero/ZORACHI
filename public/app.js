@@ -876,7 +876,7 @@ function initTeacherHub() {
       </div>` : ''}
 
       <div id="gradebookContent" class="${isStaff ? 'hidden' : ''}">
-        <h2 style="margin-top:0;">${isStaff ? 'Global Gradebook' : 'My Academic Progress'}</h2>
+        <h2 style="margin-top:0; color:#333; font-size:1.4em; margin-bottom:20px; border-left:4px solid #007bff; padding-left:10px;">${isStaff ? 'Global Gradebook' : 'My Academic Progress & Performance'}</h2>
         <div id="gradebookTable" style="overflow-x:auto;"></div>
       </div>
     </div>
@@ -976,26 +976,76 @@ async function refreshGradebook() {
   try {
     const report = await authFetch('/api/gradebook').then(r => r.json());
     const sortedReport = [...report].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    let html = `<table style="width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden;">
-      <thead><tr style="background:#eee; text-align:left;">
-        <th style="padding:10px; border:1px solid #ddd;">Title</th>
-        <th style="padding:10px; border:1px solid #ddd;">Type</th>
-        ${isStaff ? '<th style="padding:10px; border:1px solid #ddd;">Learner</th>' : ''}
-        <th style="padding:10px; border:1px solid #ddd;">Grade</th>
-        <th style="padding:10px; border:1px solid #ddd;">Recommendation</th>
+    
+    // Summary calculation for learners
+    let summaryHtml = '';
+    if (!isStaff) {
+      let total = 0;
+      let graded = 0;
+      sortedReport.forEach(a => {
+        a.grades.forEach(g => {
+          total++;
+          if (g.grade && g.grade !== 'N/A' && g.grade.trim() !== '') graded++;
+        });
+      });
+
+      summaryHtml = `
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:25px;">
+          <div style="background:#f0f7ff; padding:15px; border-radius:10px; border:1px solid #cce5ff; text-align:center;">
+            <div style="font-size:0.85em; color:#004085; font-weight:600; margin-bottom:5px;">Total Assigned</div>
+            <div style="font-size:1.8em; font-weight:bold; color:#004085;">${total}</div>
+          </div>
+          <div style="background:#f1fff4; padding:15px; border-radius:10px; border:1px solid #d4edda; text-align:center;">
+            <div style="font-size:0.85em; color:#155724; font-weight:600; margin-bottom:5px;">Graded Items</div>
+            <div style="font-size:1.8em; font-weight:bold; color:#155724;">${graded}</div>
+          </div>
+          <div style="background:#fff9f0; padding:15px; border-radius:10px; border:1px solid #ffeeba; text-align:center;">
+            <div style="font-size:0.85em; color:#856404; font-weight:600; margin-bottom:5px;">Completion Rate</div>
+            <div style="font-size:1.8em; font-weight:bold; color:#856404;">${total > 0 ? Math.round((graded/total)*100) : 0}%</div>
+          </div>
+        </div>
+      `;
+    }
+
+    const getGradeStyle = (grade) => {
+      if (!grade || grade === 'N/A' || grade === '') return 'background:#f8f9fa; color:#6c757d;';
+      const g = grade.toUpperCase().trim();
+      if (['A', 'EXCELLENT', 'DISTINCTION'].some(v => g.includes(v))) return 'background:#d4edda; color:#155724; border:1px solid #c3e6cb;';
+      if (['B', 'GOOD', 'CREDIT'].some(v => g.includes(v))) return 'background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb;';
+      if (['C', 'SATISFACTORY', 'PASS'].some(v => g.includes(v))) return 'background:#fff3cd; color:#856404; border:1px solid #ffeeba;';
+      if (['D', 'E', 'F', 'POOR', 'FAIL', 'REPEAT'].some(v => g.includes(v))) return 'background:#f8d7da; color:#721c24; border:1px solid #f5c6cb;';
+      return 'background:#e2e3e5; color:#383d41; border:1px solid #d6d8db;';
+    };
+
+    let html = summaryHtml + `<table style="width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; border:1px solid #dee2e6;">
+      <thead><tr style="background:#f8f9fa; text-align:left; color:#495057;">
+        <th style="padding:12px; border:1px solid #dee2e6;">Title</th>
+        <th style="padding:12px; border:1px solid #dee2e6;">Type</th>
+        ${isStaff ? '<th style="padding:12px; border:1px solid #dee2e6;">Learner</th>' : ''}
+        <th style="padding:12px; border:1px solid #dee2e6; text-align:center;">Grade</th>
+        <th style="padding:12px; border:1px solid #dee2e6;">Teacher Recommendation</th>
       </tr></thead><tbody>`;
     
     sortedReport.forEach(a => {
       if (a.grades.length === 0) {
-        html += `<tr><td style="padding:10px; border:1px solid #ddd; font-weight:bold;">${escapeHtml(a.title)}</td><td style="padding:10px; border:1px solid #ddd;">${a.type}</td><td colspan="${isStaff ? 3 : 2}" style="padding:10px; border:1px solid #ddd; color:#999; font-style:italic;">No recorded performance</td></tr>`;
+        html += `<tr style="background:#fff;">
+          <td style="padding:12px; border:1px solid #dee2e6; font-weight:bold;">${escapeHtml(a.title)}</td>
+          <td style="padding:12px; border:1px solid #dee2e6;">${a.type}</td>
+          <td colspan="${isStaff ? 3 : 2}" style="padding:12px; border:1px solid #dee2e6; color:#999; font-style:italic; text-align:center;">No performance record yet</td>
+        </tr>`;
       } else {
         a.grades.forEach((g, idx) => {
-          html += `<tr>
-            ${idx === 0 ? `<td rowspan="${a.grades.length}" style="padding:10px; border:1px solid #ddd; vertical-align:top; font-weight:bold;">${escapeHtml(a.title)}</td>` : ''}
-            <td style="padding:10px; border:1px solid #ddd;">${a.type}</td>
-            ${isStaff ? `<td style="padding:10px; border:1px solid #ddd;">${escapeHtml(g.learner)}</td>` : ''}
-            <td style="padding:10px; border:1px solid #ddd;"><span style="background:#e9ecef; padding:2px 8px; border-radius:4px; font-weight:bold;">${escapeHtml(g.grade)}</span></td>
-            <td style="padding:10px; border:1px solid #ddd; font-size:0.9em; color:#555;">${escapeHtml(g.recommendation || '—')}</td>
+          const gradeValue = g.grade || 'Pending';
+          html += `<tr style="background:${idx % 2 === 0 ? '#fff' : '#fafafa'};">
+            ${idx === 0 ? `<td rowspan="${a.grades.length}" style="padding:12px; border:1px solid #dee2e6; vertical-align:top; font-weight:bold; color:#0056b3;">${escapeHtml(a.title)}</td>` : ''}
+            <td style="padding:12px; border:1px solid #dee2e6;"><span style="font-size:0.8em; padding:2px 6px; border-radius:10px; background:#eee;">${a.type}</span></td>
+            ${isStaff ? `<td style="padding:12px; border:1px solid #dee2e6;"><strong>${escapeHtml(g.learner)}</strong></td>` : ''}
+            <td style="padding:12px; border:1px solid #dee2e6; text-align:center;">
+              <span style="display:inline-block; min-width:60px; padding:4px 10px; border-radius:15px; font-weight:bold; font-size:0.9em; ${getGradeStyle(g.grade)}">
+                ${escapeHtml(gradeValue)}
+              </span>
+            </td>
+            <td style="padding:12px; border:1px solid #dee2e6; font-size:0.95em; color:#444;">${g.recommendation ? `<em>"${escapeHtml(g.recommendation)}"</em>` : '<span style="color:#bbb;">No feedback provided</span>'}</td>
           </tr>`;
         });
       }
