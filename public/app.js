@@ -348,6 +348,17 @@ function renderCats(list) {
     const d = document.createElement('div');
     d.style = "background:white; padding:15px; border-radius:8px; margin-bottom:10px; border:1px solid #ddd; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
     const hasSubmitted = cat.submissions.some(s => s.learner === identity.name);
+    let submissionsToDisplay = [...cat.submissions];
+
+    if (!isStaff) {
+      // Learners only see their own submission
+      submissionsToDisplay = submissionsToDisplay.filter(s => s.learner === identity.name);
+    }
+
+    submissionsToDisplay.sort((a, b) => new Date(b.time) - new Date(a.time));
+    const submissionsLabel = isStaff
+      ? `Show CAT marks/submissions (${submissionsToDisplay.length})`
+      : `Show my CAT marks/submission (${submissionsToDisplay.length})`;
 
     let catActionsHtml = '';
     if (isStaff) {
@@ -366,7 +377,10 @@ function renderCats(list) {
         </div>
         ${catActionsHtml}
       </div>
-      <div class="cat-submissions-list" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;"></div>
+      <details class="cat-submissions-toggle">
+        <summary class="cat-submissions-summary">${escapeHtml(submissionsLabel)}</summary>
+        <div class="cat-submissions-list" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;"></div>
+      </details>
     `;
 
     if (!isStaff) {
@@ -382,14 +396,6 @@ function renderCats(list) {
     }
 
     const submissionsListEl = d.querySelector('.cat-submissions-list');
-    let submissionsToDisplay = [...cat.submissions];
-
-    if (!isStaff) {
-      // Learners only see their own submission
-      submissionsToDisplay = submissionsToDisplay.filter(s => s.learner === identity.name);
-    }
-
-    submissionsToDisplay.sort((a, b) => new Date(b.time) - new Date(a.time));
 
     if (submissionsToDisplay.length === 0) {
       submissionsListEl.innerHTML = '<p style="color:#666; font-style:italic;">No submissions yet.</p>';

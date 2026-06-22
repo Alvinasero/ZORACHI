@@ -394,6 +394,16 @@
       "lastName": "okech",
       "otherName": null,
       "name": "sam okech"
+    },
+    {
+      "id": 17,
+      "email": "venszsal@gmail.com",
+      "password": "$2a$10$GaX/ZjvirVZU8EzEm.e0xuIyeIZKO30FoxTeHAE8Q69oH6.nWPUG2",
+      "role": "learner",
+      "firstName": "philip",
+      "lastName": "ombitsa",
+      "otherName": null,
+      "name": "philip ombitsa"
     }
   ],
   "attendance": {
