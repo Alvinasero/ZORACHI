@@ -11,19 +11,23 @@
 }
 body {
   margin: 0;
+  width: 100%;
   min-height: 100vh;
   font-family: Inter, "Segoe UI", system-ui, sans-serif;
   background: radial-gradient(circle at top, rgba(58, 138, 255, 0.2), transparent 30%),
     linear-gradient(180deg, #08101f 0%, #08101f 45%, #0e1b35 100%);
   color: var(--text);
+  overflow-x: hidden;
 }
 * {
   box-sizing: border-box;
 }
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+  max-width: 100%;
 }
 .app-shell {
   min-height: 100vh;
@@ -94,8 +98,10 @@ select {
   font-weight: 600;
 }
 .container {
+  width: 100%;
   max-width: 980px;
   padding: 24px 18px;
+  place-items: start stretch;
 }
 .hidden {
   display: none !important;
@@ -183,6 +189,7 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 22px;
   padding: 24px;
+  min-width: 0;
 }
 .panel h2 {
   margin-top: 0;
@@ -199,6 +206,8 @@ main {
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.04);
   margin-bottom: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .message.unread {
   border: 1px solid rgba(56, 188, 255, 0.5);
@@ -286,7 +295,9 @@ main {
   gap: 12px;
   margin-top: 16px;
 }
-.panel form input {
+.panel form input,
+.panel form select,
+.panel form textarea {
   width: 100%;
   padding: 12px 14px;
   border-radius: 14px;
@@ -348,6 +359,30 @@ main {
 .cat-submissions-toggle[open] .cat-submissions-summary::before {
   content: "-";
 }
+.content-text,
+.submission-body,
+.attachment-tag,
+.grade-info {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.attachment-preview img,
+.attachment-preview video {
+  max-width: 100% !important;
+  height: auto;
+}
+.submissions {
+  min-width: 0;
+}
+.submissions table,
+#gradebookTable table {
+  min-width: 640px;
+}
+.submissions,
+#gradebookTable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .time {
   display: block;
   color: var(--muted);
@@ -360,11 +395,116 @@ footer {
   margin-top: 14px;
 }
 @media (max-width: 720px) {
+  .container {
+    min-height: auto;
+    padding: 16px 10px 24px;
+  }
   .login-card {
     padding: 24px;
   }
   .app-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .user-chip {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .user-chip button {
+    margin-left: auto;
+  }
+  .panel {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .admin-stats {
+    grid-template-columns: 1fr;
+  }
+  .message-filters,
+  #teacherSearchArea > div {
+    display: grid !important;
+    grid-template-columns: 1fr;
+  }
+  #searchButton,
+  .panel form button,
+  .reply-form button {
+    width: 100% !important;
+  }
+  .cat-submissions-summary {
+    width: 100%;
+    justify-content: flex-start;
+    white-space: normal;
+  }
+  #catTeacherForm .form-box > div,
+  .cat-card-header,
+  #catAttemptArea,
+  .assignment > div:first-child,
+  #teacherHubSection .header-row,
+  #teacherHubSection .header-row > div,
+  #teacherHubSection > div > div:first-child,
+  #attendanceList > div,
+  .submission [style*="display: flex"],
+  .submission [style*="display:flex"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  #catTeacherForm label,
+  .attachment-tag a {
+    display: block;
+  }
+  #catTeacherForm input,
+  #catTeacherForm textarea,
+  #catAttemptArea textarea,
+  .grade-input,
+  .cat-grade-input,
+  .recommendation-input,
+  .cat-recommendation-input,
+  .bulk-rec {
+    width: 100% !important;
+  }
+  #cancelCAT,
+  .clear-btn,
+  .delete-attachment-btn {
+    margin-left: 0 !important;
+  }
+  .delete-attachment-btn,
+  .edit-submission-btn,
+  .delete-submission-btn,
+  .save-grade-btn,
+  .save-cat-grade-btn,
+  .bulk-toggle-btn,
+  .save-bulk-btn,
+  #markAllPresent,
+  #tabAttendance,
+  #tabGradebook,
+  .att-status {
+    width: 100%;
+    margin-top: 8px;
+    min-height: 40px;
+  }
+  #attendanceDate {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .login-card {
+    width: calc(100% - 20px);
+    padding: 20px;
+    border-radius: 18px;
+  }
+  .app-header h1 {
+    font-size: 2rem;
+  }
+  .panel {
+    padding: 12px;
+  }
+  .message,
+  .assignment,
+  .submission {
+    padding: 12px;
+    border-radius: 14px;
   }
 }

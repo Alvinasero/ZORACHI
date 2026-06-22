@@ -346,6 +346,7 @@ function renderCats(list) {
   if (!sortedCats.length) el.innerHTML = '<p style="color:#666; font-style:italic;">No CATs scheduled.</p>';
   sortedCats.forEach(cat => {
     const d = document.createElement('div');
+    d.className = 'cat-card';
     d.style = "background:white; padding:15px; border-radius:8px; margin-bottom:10px; border:1px solid #ddd; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
     const hasSubmitted = cat.submissions.some(s => s.learner === identity.name);
     let submissionsToDisplay = [...cat.submissions];
@@ -370,7 +371,7 @@ function renderCats(list) {
     }
 
     d.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+      <div class="cat-card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
         <div>
           <h4 style="margin:0;">${escapeHtml(cat.title)}</h4>
           <small style="color:#888;">Window: ${new Date(cat.startTime).toLocaleString()} - ${new Date(cat.endTime).toLocaleString()}</small>
